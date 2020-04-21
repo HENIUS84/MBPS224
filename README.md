@@ -3,7 +3,7 @@ This is program of supporting firmware for Mictrocontroller Based Power Supply p
 
 Device consists of two main parts:
 - Main Board (ATmega128),
-- Power Supply Module ATmega32).
+- Power Supply Module (ATmega32).
 
 The responsibilities of Main Board are:
 - communication with power supply module over isolated I2C bus,
