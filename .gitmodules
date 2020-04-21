@@ -1,0 +1,6 @@
+[submodule "Common"]
+	path = Common
+	url = https://github.com/HENIUS84/AVRLibByHENIUS.git
+[submodule "Firmware/Common"]
+	path = Firmware/Common
+	url = https://github.com/HENIUS84/AVRLibByHENIUS.git

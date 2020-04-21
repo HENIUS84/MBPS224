@@ -1,0 +1,33 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Atmel Studio Solution File, Format Version 11.00
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "PowerSupplyModule", "PowerSupplyModule\PowerSupplyModule.cproj", "{4C3F1556-3900-45DD-9D18-E1DD933F1160}"
+EndProject
+Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "MainBoard", "MainBoard\MainBoard.cproj", "{1F739DB3-036F-4E56-B0D5-D964CDFBA936}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|ARM = Debug|ARM
+		Debug|AVR = Debug|AVR
+		Release|ARM = Release|ARM
+		Release|AVR = Release|AVR
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4C3F1556-3900-45DD-9D18-E1DD933F1160}.Debug|ARM.ActiveCfg = Debug|AVR
+		{4C3F1556-3900-45DD-9D18-E1DD933F1160}.Debug|AVR.ActiveCfg = Debug|AVR
+		{4C3F1556-3900-45DD-9D18-E1DD933F1160}.Debug|AVR.Build.0 = Debug|AVR
+		{4C3F1556-3900-45DD-9D18-E1DD933F1160}.Release|ARM.ActiveCfg = Release|AVR
+		{4C3F1556-3900-45DD-9D18-E1DD933F1160}.Release|AVR.ActiveCfg = Release|AVR
+		{4C3F1556-3900-45DD-9D18-E1DD933F1160}.Release|AVR.Build.0 = Release|AVR
+		{1F739DB3-036F-4E56-B0D5-D964CDFBA936}.Debug|ARM.ActiveCfg = Debug|AVR
+		{1F739DB3-036F-4E56-B0D5-D964CDFBA936}.Debug|AVR.ActiveCfg = Debug|AVR
+		{1F739DB3-036F-4E56-B0D5-D964CDFBA936}.Debug|AVR.Build.0 = Debug|AVR
+		{1F739DB3-036F-4E56-B0D5-D964CDFBA936}.Release|ARM.ActiveCfg = Release|AVR
+		{1F739DB3-036F-4E56-B0D5-D964CDFBA936}.Release|AVR.ActiveCfg = Release|AVR
+		{1F739DB3-036F-4E56-B0D5-D964CDFBA936}.Release|AVR.Build.0 = Release|AVR
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

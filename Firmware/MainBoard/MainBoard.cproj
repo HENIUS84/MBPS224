@@ -1,0 +1,362 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectVersion>7.0</ProjectVersion>
+    <ProjectGuid>{1f739db3-036f-4e56-b0d5-d964cdfba936}</ProjectGuid>
+    <avrdevice>ATmega128</avrdevice>
+    <avrdeviceseries>none</avrdeviceseries>
+    <OutputType>Executable</OutputType>
+    <Language>C</Language>
+    <OutputFile>$(MSBuildProjectName).elf</OutputFile>
+    <OutputDirectory>$(MSBuildProjectDirectory)\$(Configuration)</OutputDirectory>
+    <AvrGccProjectExtensions>
+    </AvrGccProjectExtensions>
+    <AssemblyName>MBPS224_MainBoard</AssemblyName>
+    <Name>MainBoard</Name>
+    <RootNamespace>MBPS224_MainBoard</RootNamespace>
+    <avrtool>com.atmel.avrdbg.tool.simulator</avrtool>
+    <SccProjectName>
+    </SccProjectName>
+    <SccProvider>
+    </SccProvider>
+    <SccAuxPath>
+    </SccAuxPath>
+    <SccLocalPath>
+    </SccLocalPath>
+    <ToolchainName>com.Atmel.AVRGCC8.C</ToolchainName>
+    <ToolchainFlavour>Native</ToolchainFlavour>
+    <AsfVersion>2.11.1</AsfVersion>
+    <KeepTimersRunning>true</KeepTimersRunning>
+    <OverrideVtor>false</OverrideVtor>
+    <OverrideVtorValue>exception_table</OverrideVtorValue>
+    <eraseonlaunchrule>0</eraseonlaunchrule>
+    <AsfFrameworkConfig>
+      <framework-data>
+        <options />
+        <configurations />
+        <files />
+        <documentation help="" />
+        <offline-documentation help="" />
+        <dependencies>
+          <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.39.0" />
+        </dependencies>
+      </framework-data>
+    </AsfFrameworkConfig>
+    <CacheFlash>true</CacheFlash>
+    <ProgFlashFromRam>true</ProgFlashFromRam>
+    <RamSnippetAddress>0x20000000</RamSnippetAddress>
+    <UncachedRange />
+    <BootSegment>0</BootSegment>
+    <avrtoolinterface />
+    <com_atmel_avrdbg_tool_simulator>
+      <ToolType>com.atmel.avrdbg.tool.simulator</ToolType>
+      <ToolName>Simulator</ToolName>
+      <ToolNumber>
+      </ToolNumber>
+      <Channel>
+        <host>127.0.0.1</host>
+        <port>49487</port>
+        <ssl>False</ssl>
+      </Channel>
+      <ToolOptions>
+        <InterfaceProperties>
+          <JtagEnableExtResetOnStartSession>false</JtagEnableExtResetOnStartSession>
+        </InterfaceProperties>
+        <InterfaceName>
+        </InterfaceName>
+      </ToolOptions>
+    </com_atmel_avrdbg_tool_simulator>
+    <UseGdb>False</UseGdb>
+    <UseGdbCustomPath>False</UseGdbCustomPath>
+    <preserveEEPROM>true</preserveEEPROM>
+    <ResetRule>0</ResetRule>
+    <EraseKey />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <OutputFileName>MainBoard</OutputFileName>
+    <OutputFileExtension>.elf</OutputFileExtension>
+    <ToolchainSettings>
+      <AvrGcc>
+        <avrgcc.common.Device>-mmcu=atmega128 -B "%24(PackRepoDir)\atmel\ATmega_DFP\1.0.98\gcc\dev\atmega128"</avrgcc.common.Device>
+        <avrgcc.common.outputfiles.hex>True</avrgcc.common.outputfiles.hex>
+        <avrgcc.common.outputfiles.lss>True</avrgcc.common.outputfiles.lss>
+        <avrgcc.common.outputfiles.eep>True</avrgcc.common.outputfiles.eep>
+        <avrgcc.common.outputfiles.srec>True</avrgcc.common.outputfiles.srec>
+        <avrgcc.common.outputfiles.usersignatures>False</avrgcc.common.outputfiles.usersignatures>
+        <avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>True</avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>
+        <avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>True</avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>
+        <avrgcc.compiler.directories.IncludePaths>
+          <ListValues>
+            <Value>%24(PackRepoDir)\atmel\ATmega_DFP\1.0.98\include</Value>
+          </ListValues>
+        </avrgcc.compiler.directories.IncludePaths>
+        <avrgcc.compiler.optimization.level>Optimize for size (-Os)</avrgcc.compiler.optimization.level>
+        <avrgcc.compiler.optimization.PackStructureMembers>True</avrgcc.compiler.optimization.PackStructureMembers>
+        <avrgcc.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcc.compiler.optimization.AllocateBytesNeededForEnum>
+        <avrgcc.compiler.warnings.AllWarnings>True</avrgcc.compiler.warnings.AllWarnings>
+        <avrgcc.linker.libraries.Libraries>
+          <ListValues>
+            <Value>libm</Value>
+          </ListValues>
+        </avrgcc.linker.libraries.Libraries>
+        <avrgcc.assembler.general.IncludePaths>
+          <ListValues>
+            <Value>%24(PackRepoDir)\atmel\ATmega_DFP\1.0.98\include</Value>
+          </ListValues>
+        </avrgcc.assembler.general.IncludePaths>
+      </AvrGcc>
+    </ToolchainSettings>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <OutputType>Executable</OutputType>
+    <OutputFileName>MainBoard</OutputFileName>
+    <OutputFileExtension>.elf</OutputFileExtension>
+    <ToolchainSettings>
+      <AvrGcc>
+        <avrgcc.common.Device>-mmcu=atmega128 -B "%24(PackRepoDir)\atmel\ATmega_DFP\1.0.98\gcc\dev\atmega128"</avrgcc.common.Device>
+        <avrgcc.common.outputfiles.hex>True</avrgcc.common.outputfiles.hex>
+        <avrgcc.common.outputfiles.lss>True</avrgcc.common.outputfiles.lss>
+        <avrgcc.common.outputfiles.eep>True</avrgcc.common.outputfiles.eep>
+        <avrgcc.common.outputfiles.srec>True</avrgcc.common.outputfiles.srec>
+        <avrgcc.common.outputfiles.usersignatures>False</avrgcc.common.outputfiles.usersignatures>
+        <avrgcc.compiler.general.SubroutinesFunctionPrologues>True</avrgcc.compiler.general.SubroutinesFunctionPrologues>
+        <avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>True</avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>
+        <avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>True</avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>
+        <avrgcc.compiler.symbols.DefSymbols>
+          <ListValues>
+            <Value>F_CPU=14745600</Value>
+            <Value>SYS_TIME=2</Value>
+            <Value>PS_MODULES_COUNT=2</Value>
+            <Value>FIRMWARE_VERSION=\"1.1.13\"</Value>
+            <Value>DEVICE_NAME=\"MBPS224\"</Value>
+          </ListValues>
+        </avrgcc.compiler.symbols.DefSymbols>
+        <avrgcc.compiler.directories.IncludePaths>
+          <ListValues>
+            <Value>../Resources/Fonts/include</Value>
+            <Value>../Resources/Bitmaps/include</Value>
+            <Value>../Hardware/include</Value>
+            <Value>../HighLevel/include</Value>
+            <Value>../include</Value>
+            <Value>../Resources/Rings/include</Value>
+            <Value>../../Common/include</Value>
+            <Value>%24(PackRepoDir)\atmel\ATmega_DFP\1.0.98\include</Value>
+          </ListValues>
+        </avrgcc.compiler.directories.IncludePaths>
+        <avrgcc.compiler.optimization.level>Optimize for size (-Os)</avrgcc.compiler.optimization.level>
+        <avrgcc.compiler.optimization.PackStructureMembers>True</avrgcc.compiler.optimization.PackStructureMembers>
+        <avrgcc.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcc.compiler.optimization.AllocateBytesNeededForEnum>
+        <avrgcc.compiler.optimization.DebugLevel>Default (-g2)</avrgcc.compiler.optimization.DebugLevel>
+        <avrgcc.compiler.warnings.AllWarnings>True</avrgcc.compiler.warnings.AllWarnings>
+        <avrgcc.linker.general.GenerateMAPFile>False</avrgcc.linker.general.GenerateMAPFile>
+        <avrgcc.assembler.general.IncludePaths>
+          <ListValues>
+            <Value>%24(PackRepoDir)\atmel\ATmega_DFP\1.0.98\include</Value>
+          </ListValues>
+        </avrgcc.assembler.general.IncludePaths>
+        <avrgcc.assembler.debugging.DebugLevel>Default (-Wa,-g)</avrgcc.assembler.debugging.DebugLevel>
+      </AvrGcc>
+    </ToolchainSettings>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\Common\source\Audio.c">
+      <SubType>compile</SubType>
+      <Link>Hardware\source\Audio.c</Link>
+    </Compile>
+    <Compile Include="..\Common\source\Debug.c">
+      <SubType>compile</SubType>
+      <Link>HighLevel\source\Debug.c</Link>
+    </Compile>
+    <Compile Include="..\Common\source\GraphLib.c">
+      <SubType>compile</SubType>
+      <Link>HighLevel\source\GraphLib.c</Link>
+    </Compile>
+    <Compile Include="..\Common\source\HENBUSController.c">
+      <SubType>compile</SubType>
+      <Link>Hardware\source\HENBUSController.c</Link>
+    </Compile>
+    <Compile Include="..\Common\source\I2CMaster.c">
+      <SubType>compile</SubType>
+      <Link>Hardware\source\I2CMaster.c</Link>
+    </Compile>
+    <Compile Include="..\Common\source\KeyboardLib.c">
+      <SubType>compile</SubType>
+      <Link>HighLevel\source\KeyboardLib.c</Link>
+    </Compile>
+    <Compile Include="..\Common\source\KS0108LCD.c">
+      <SubType>compile</SubType>
+      <Link>Hardware\source\KS0108LCD.c</Link>
+    </Compile>
+    <Compile Include="..\Common\source\OWICrc.c">
+      <SubType>compile</SubType>
+      <Link>HighLevel\source\OWICrc.c</Link>
+    </Compile>
+    <Compile Include="..\Common\source\OWIMaster.c">
+      <SubType>compile</SubType>
+      <Link>Hardware\source\OWIMaster.c</Link>
+    </Compile>
+    <Compile Include="..\Common\source\OWIThermometer.c">
+      <SubType>compile</SubType>
+      <Link>Hardware\source\OWIThermometer.c</Link>
+    </Compile>
+    <Compile Include="..\Common\source\SerialPort.c">
+      <SubType>compile</SubType>
+      <Link>Hardware\source\SerialPort.c</Link>
+    </Compile>
+    <Compile Include="..\Common\source\SettingsController.c">
+      <SubType>compile</SubType>
+      <Link>HighLevel\source\SettingsController.c</Link>
+    </Compile>
+    <Compile Include="..\Common\source\SoundLib.c">
+      <SubType>compile</SubType>
+      <Link>HighLevel\source\SoundLib.c</Link>
+    </Compile>
+    <Compile Include="..\Common\source\TDA8551.c">
+      <SubType>compile</SubType>
+      <Link>Hardware\source\TDA8551.c</Link>
+    </Compile>
+    <Compile Include="..\Common\source\Utils.c">
+      <SubType>compile</SubType>
+      <Link>HighLevel\source\Utils.c</Link>
+    </Compile>
+    <Compile Include="..\Common\source\Version.c">
+      <SubType>compile</SubType>
+      <Link>HighLevel\source\Version.c</Link>
+    </Compile>
+    <Compile Include="Hardware\include\Audio.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Hardware\include\Buttons.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Hardware\include\Hardware.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Hardware\include\KS0108LCD.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Hardware\include\TDA8551.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Hardware\source\Buttons.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Hardware\source\Hardware.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="HighLevel\include\Peripherals.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="HighLevel\include\PSDataService.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="HighLevel\include\ThermalController.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="HighLevel\include\Tasks.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="HighLevel\include\Menu.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="HighLevel\include\PSMController.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="HighLevel\include\Settings.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="HighLevel\source\Peripherals.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="HighLevel\source\PSDataService.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="HighLevel\source\ThermalController.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="HighLevel\source\Tasks.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="HighLevel\source\Menu.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="HighLevel\source\PSMController.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="HighLevel\source\Settings.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="include\main.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="main.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Resources\Bitmaps\include\Bitmaps.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Resources\Bitmaps\source\AboutIcon.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Resources\Bitmaps\source\GeneralSettingsIcon.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Resources\Bitmaps\source\PCConnectionImage.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Resources\Bitmaps\source\PSsettingsIcon.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Resources\Bitmaps\source\SettingsIcon.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Resources\Bitmaps\source\SplashScreen1.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Resources\Bitmaps\source\SplashScreen2.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Resources\Fonts\include\Fonts.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Resources\Fonts\source\MicrosoftSansSerif11Bold.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Resources\Fonts\source\MicrosoftSansSerif7.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Resources\Fonts\source\MicrosoftSansSerif8Bold.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Resources\Fonts\source\MicrosoftSansSerif9.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Resources\Rings\include\Rings.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Resources\Rings\source\Intro.c">
+      <SubType>compile</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Hardware\include" />
+    <Folder Include="Hardware\source" />
+    <Folder Include="HighLevel\include" />
+    <Folder Include="HighLevel\source" />
+    <Folder Include="include" />
+    <Folder Include="Hardware" />
+    <Folder Include="HighLevel" />
+    <Folder Include="Resources" />
+    <Folder Include="Resources\Bitmaps\include" />
+    <Folder Include="Resources\Bitmaps\source" />
+    <Folder Include="Resources\Fonts" />
+    <Folder Include="Resources\Fonts\include" />
+    <Folder Include="Resources\Fonts\source" />
+    <Folder Include="Resources\Bitmaps" />
+    <Folder Include="Resources\Rings" />
+    <Folder Include="Resources\Rings\include" />
+    <Folder Include="Resources\Rings\source" />
+  </ItemGroup>
+  <Import Project="$(AVRSTUDIO_EXE_PATH)\\Vs\\AvrGCC.targets" />
+</Project>
