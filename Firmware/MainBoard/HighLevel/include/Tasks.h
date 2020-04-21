@@ -4,7 +4,7 @@
  * @author   HENIUS (Paweł Witak)
  * @version  1.1.1
  * @date     19/11/2010
- * @brief    Zestaw zadań obsugiwanych przez płytę główną (plik nagłówkowy)
+ * @brief    Task list supported by main board (header file)
  *******************************************************************************
  *
  * <h2><center>COPYRIGHT 2010 HENIUS</center></h2>
@@ -13,60 +13,121 @@
 #ifndef  TASKS_H
 #define  TASKS_H
 
-/* Sekcja include ------------------------------------------------------------*/
+/* Include section -----------------------------------------------------------*/
 
-// --->Pliki systemowe
+// --->System files
 
 #include <stdint.h>
 #include <stdio.h>
 
-// --->Pliki użytkownika
+// --->User files
 
 #include "PSMcontroller.h"
 
-/* Sekcja stałych, makr i definicji ------------------------------------------*/
+/* Macros, constants and definitions section ---------------------------------*/
 
-// --->Makra
+// --->Macros
 
-/*! Makro zwracające czas zadania */
+/*! Macro to get task interval */
 #define GET_TIME(interval) \
 	(!(interval / SYS_TIME) ? SYS_TIME : (interval / SYS_TIME))
 
-// --->Stałe
+// --->Constants
 
-// Czasy powtarzania zadań (w ms)
+// Task intervals (in ms)
 
-/*! Czas zadania obsługi wyświetlacza */
+/*! Interval time for display handler task */
 #define LCD_TASK_TIME	(GET_TIME(10))	
-/*! Czas zadania komunikacji z modułami zasilacza */
+/*! Interval time for module communication handler task */
 #define PSM_TASK_TIME	(GET_TIME(5))
-/*! Czas zadania obsługi przycisków menu */
+/*! Interval time for button handler task */
 #define MENU_TASK_TIME	(GET_TIME(10))
-/*! Czas zadania obsługi dźwięku */
+/*! Interval time for sound handler task */
 #define SOUND_TASK_TIME	(GET_TIME(1))
-/*! Czas zadania obsługi klawiatury */
+/*! Interval time keyboard handler task */
 #define KBD_TASK_TIME	(GET_TIME(1))
-/*! Czas zadania pomiaru temperatury */
+/*! Interval time for temperature meter task */
 #define TEMP_TASK_TIME	(GET_TIME(1))
-/*! Czas zadania zarządzania temperaturą */
+/*! Interval time for temperature management task */
 #define TEMP_CTRL_TASK_TIME	(GET_TIME(100))
-/*! Czas zadania komunikacji z PC */
+/*! Interval time for PC communication task */
 #define PC_COMM_TASK_TIME	(GET_TIME(10))
 
-// --->Funkcje
+// --->Functions
 
-void MainSystemTask(void);			// Główne zadanie systemowe
-// Zadanie wymiany danych z modułami zasilacza
+/*----------------------------------------------------------------------------*/
+/**
+ * @brief    Main system task (1 ms)
+ * @param    None
+ * @retval   None
+ */
+void MainSystemTask(void);
+
+/*----------------------------------------------------------------------------*/
+/**
+ * @brief    Module communication task
+ * @param    None
+ * @retval   None
+ */
 void PSMCtrlTask(void);
-void PSMLcdTask(void);				// Zadanie obsługi wyświetlania
-void KeyboardTask(void);			// Zadanie obsługi klawiatury
-void TemperatureTask(void);			// Zadanie obsługi pomiaru temperatury	
-void SoundTask(void);				// Zadanie obsługi generowania dźwięku	
-void MenuKeysTask(void);			// Zadanie obsługi przycisków menu
-void ThermalControlTask(void);		// Zadanie zarządzania temperaturą
-void PCCommunicationTask();			// Zadanie komunikacji z PC
+
+/*----------------------------------------------------------------------------*/
+/**
+ * @brief    Display handler task
+ * @param    None
+ * @retval   None
+ */
+void PSMLcdTask(void);
+
+/*----------------------------------------------------------------------------*/
+/**
+ * @brief    Keyboard handler task
+ * @param    None
+ * @retval   None
+ */
+void KeyboardTask(void);
+
+/*----------------------------------------------------------------------------*/
+/**
+ * @brief    Temperature measurement task
+ * @param    None
+ * @retval   None
+ */
+void TemperatureTask(void);
+
+/*----------------------------------------------------------------------------*/
+/**
+ * @brief    Task of sound generation
+ * @param    None
+ * @retval   None
+ */
+void SoundTask(void);	
+
+/*----------------------------------------------------------------------------*/
+/**
+ * @brief    Menu key task
+ * @param    None
+ * @retval   None
+ */
+void MenuKeysTask(void);
+
+/*----------------------------------------------------------------------------*/
+/**
+ * @brief    Temperature management task
+ * @param    None
+ * @retval   None
+ */
+void ThermalControlTask(void);
+
+/*----------------------------------------------------------------------------*/
+/**
+ * @brief    PC communication task
+ * @param    None
+ * @retval   None
+ */
+void PCCommunicationTask();
 
 #endif								/* TASKS_H */
 
-/******************* (C) COPYRIGHT 2010 HENIUS ************** KONIEC PLIKU ****/
+/******************* (C) COPYRIGHT 2010 HENIUS *************** END OF FILE ****/
 

@@ -13,12 +13,12 @@
 #ifndef RINGS_H_
 #define RINGS_H_
 
-/* Sekcja include ------------------------------------------------------------*/
+/* Include section -----------------------------------------------------------*/
 
-// --->Pliki systemowe
+// --->System files
 #include <stdint.h>
 
-/* Sekcja deklaracji ---------------------------------------------------------*/
+/* Declaration section -------------------------------------------------------*/
 
 // --->Zmienne
 
@@ -26,4 +26,4 @@ extern uint8_t Intro[];				/*!< Dzwonek startowy */
 
 #endif								/* RINGS_H_ */
 
-/******************* (C) COPYRIGHT 2012 HENIUS *************** KONIEC PLIKU ***/
+/******************* (C) COPYRIGHT 2012 HENIUS *************** END OF FILE ****/

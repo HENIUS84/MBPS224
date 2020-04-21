@@ -4,7 +4,7 @@
  * @author   HENIUS (Pawe³ Witak)
  * @version  1.1.1
  * @date     25-01-2013
- * @brief    Obs³uga peryferiów (plik nag³ówkowy)
+ * @brief    Peripherals driver (header file)
  *******************************************************************************
  *
  * <h2><center>COPYRIGHT 2013 HENIUS</center></h2>
@@ -13,42 +13,45 @@
 #ifndef  PERIPHERALS_H_
 #define  PERIPHERALS_H_
 
-/* Sekcja include ------------------------------------------------------------*/
+/* Include section -----------------------------------------------------------*/
 
-// --->Pliki systemowe
+// --->System files
 
 #include <stdint.h>
 #include <stdbool.h>
 
-// --->Pliki u¿ytkownika
+// --->User files
 
 #include "MBController.h"
 #include "Multimeter.h"
 #include "Regulator.h"
 #include "OWIThermometer.h"
 
-/* Sekcja sta³ych, makr i definicji ------------------------------------------*/
+/* Macros, constants and definitions section ---------------------------------*/
 
-#define AMOUNT_OF_THERMOMETERS	(1)	/*!< Liczba termometrów */
+#define AMOUNT_OF_THERMOMETERS	(1)					/*!< Count of thermometers */
 
-/* Sekcja deklaracji ---------------------------------------------------------*/
+/* Declaration section -------------------------------------------------------*/
 
-// --->Zmienne
+// --->Vaiables
 
-// Kontroler komunikacji z p³yt¹ g³ówn¹
+/*! Controller of communication with main board */
 extern MBController_t MBCommController;
-// Dane regulatora
-extern PSMreg_t PSMReg;				
-// Struktura ze wskaŸnikami dla multimetru
-extern Multimeter_t Multimeter;
-// Kontroler obs³ugi termometrów */
+extern PSMreg_t PSMReg;						/*!< Regulator data */
+extern Multimeter_t Multimeter;				/*!< Data structure for multimeter*/
+/*! Thermometers controller */
 extern OWIThermoCtrl_t ThermometerController;	
 
-// --->Funkcje
+// --->Functions
 
-// Inicjalizacja peryferiów
+//*----------------------------------------------------------------------------*/
+/**
+* @brief    Initializes peripherals
+* @param    None
+* @retval   None
+*/
 void InitPeripherals_(void);
 
 #endif								/* PERIPHERALS_H_ */
 
-/******************* (C) COPYRIGHT 2013 HENIUS *************** KONIEC PLIKU ***/
+/******************* (C) COPYRIGHT 2013 HENIUS *************** END OF FILE ****/

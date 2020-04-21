@@ -4,20 +4,20 @@
  * @author   HENIUS (Paweł Witak)
  * @version  1.1.1
  * @date     19/11/2010
- * @brief    Zestaw zadań obsługiwanych przez płytę główną
+ * @brief    Task list supported by main board
  ******************************************************************************
  *
  * <h2><center>COPYRIGHT 2010 HENIUS</center></h2>
  */
 
-/* Sekcja include ------------------------------------------------------------*/
+/* Include section -----------------------------------------------------------*/
 
-// --->Pliki systemowe
+// --->System files
 
 #include <avr/pgmspace.h>
 #include <avr/wdt.h>
 
-// --->Pliki użytkownika
+// --->User files
 
 #include "Hardware.h"
 #include "I2CMaster.h"
@@ -33,28 +33,17 @@
 #include "Settings.h"
 #include "PSDataService.h"
 
-/* Sekcja funkcji ------------------------------------------------------------*/
+/* Function section ----------------------------------------------------------*/
 
 /*----------------------------------------------------------------------------*/
-/**
- * @brief    Główne zadanie systemowe 1 ms
- * @param    Brak
- * @retval   Brak
- */
 void MainSystemTask(void) 
 {		
-	StatLedHandler();				// Obsługa migania diodą
+	StatLedHandler();
 }
 
 /*----------------------------------------------------------------------------*/
-/**
- * @brief    Zadanie obsługi generowania dźwięku
- * @param    Brak
- * @retval   Brak
- */
 void SoundTask(void) 
 {
-	// Timer zadania
 	static uint16_t timer = SOUND_TASK_TIME;
 	
 	if (!(--timer)) 
@@ -66,37 +55,21 @@ void SoundTask(void)
 }
 
 /*----------------------------------------------------------------------------*/
-/**
- * @brief    Zadanie obsługi pomiaru temperatury
- * @param    Brak
- * @retval   Brak
- */
 void TemperatureTask(void) 
 {
-	// Timer zadania
 	static uint16_t timer = TEMP_TASK_TIME;
 	
 	if (!(--timer)) 
 	{
 		timer = TEMP_TASK_TIME;
-		
-		// Odczyt temperatury i jej znaku wprost z czujnika
 		OWIThermo_Handler();
-	
-		// Konwersja temperatury
 		MainBoardTemp = ThermometerController.Temperatures[0] * 10 / 16;
 	}	
 }
 
 /*----------------------------------------------------------------------------*/
-/**
- * @brief    Zadanie wymiany danych z modułami zasilacza
- * @param    Brak
- * @retval   Brak
- */
 void PSMCtrlTask(void)
 {
-	// Timer zadania
 	static uint16_t timer = PSM_TASK_TIME;
 	
 	if (!(--timer)) 
@@ -109,52 +82,32 @@ void PSMCtrlTask(void)
 }
 
 /*----------------------------------------------------------------------------*/
-/**
- * @brief    Zadanie obsługi przycisków menu
- * @param    Brak
- * @retval   Brak
- */
 void MenuKeysTask(void) 
 {
-	// Timer zadania
 	static uint16_t timer = MENU_TASK_TIME;
 	
 	if (!(--timer)) 
 	{
-		timer = MENU_TASK_TIME;
-		
-		MenuKeysHandler();			// Obsługa przycisków menu
+		timer = MENU_TASK_TIME;		
+		MenuKeysHandler();
 	}	
 }
 
 /*----------------------------------------------------------------------------*/
-/**
- * @brief    Zadanie obsługi wyświetlania
- * @param    Brak
- * @retval   Brak
- */
 void PSMLcdTask(void) 
 {
-	// Timer zadania
 	static uint16_t timer = LCD_TASK_TIME;
 	
 	if (!(--timer)) 
 	{
-		timer = LCD_TASK_TIME;
-		
+		timer = LCD_TASK_TIME;		
 		KS0108LCD_MemoryHandler();
 	}	
 }
 
 /*----------------------------------------------------------------------------*/
-/**
- * @brief    Zadanie obsługi klawiatury
- * @param    Brak
- * @retval   Brak
- */
 void KeyboardTask(void) 
 {
-	// Timer zadania
 	static uint16_t timer = KBD_TASK_TIME;
 	
 	if (!(--timer)) 
@@ -166,14 +119,8 @@ void KeyboardTask(void)
 }
 
 /*----------------------------------------------------------------------------*/
-/**
- * @brief    Zadanie zarządzania temperaturą
- * @param    Brak
- * @retval   Brak
- */
 void ThermalControlTask(void)
 {
-	// Timer zadania
 	static uint16_t timer = TEMP_CTRL_TASK_TIME;
 	
 	if (!(--timer))
@@ -194,14 +141,8 @@ void ThermalControlTask(void)
 }
 
 /*----------------------------------------------------------------------------*/
-/**
- * @brief    Zadanie komunikacji z PC
- * @param    Brak
- * @retval   Brak
- */
 void PCCommunicationTask()
 {
-	// Timer zadania
 	static uint16_t timer = PC_COMM_TASK_TIME;
 	
 	if (!(--timer))
@@ -212,4 +153,4 @@ void PCCommunicationTask()
 	}
 }
 
-/******************* (C) COPYRIGHT 2010 HENIUS *************** KONIEC PLIKU ***/
+/******************* (C) COPYRIGHT 2010 HENIUS *************** END OF FILE ****/

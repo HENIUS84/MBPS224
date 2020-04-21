@@ -1,10 +1,10 @@
 /**
  *******************************************************************************
- * @file     PSDataService.c
+ * @file     PSDataService.h
  * @author   HENIUS (Pawe³ Witak)
  * @version  1.1.1
  * @date     07-11-2013
- * @brief    Us³uga zarz¹dzaj¹ca komunikacj¹ z komputerem (plik nag³ówkowy)
+ * @brief    Service managing of communication with PC (header file)
  *******************************************************************************
  *
  * <h2><center>COPYRIGHT 2013 HENIUS</center></h2>
@@ -13,104 +13,118 @@
 #ifndef  PS_DATA_SERVICE_H
 #define  PS_DATA_SERVICE_H
 
-/* Sekcja include ------------------------------------------------------------*/
+/* Include section -----------------------------------------------------------*/
 
-// --->Pliki systemowe
+// --->System files
 
 #include <stdbool.h>
 #include <stdint.h>
 
-/* Sekcja sta³ych, makr i definicji ------------------------------------------*/
+/* Macros, constants and definitions section ---------------------------------*/
 
-//--->Sta³e
+//--->Constants
 
-#define PSDS_MB_ADDRESS		(0x00)	/*!< Adres urz¹dzenia do komunikacji z PC */
-
-#define FRAME_DATA_SIZE		(128)	/*!< Rozmiar bufora danych ramki */
-/*! Rozmiar komendy ramki */
+#define PSDS_MB_ADDRESS		(0x00)	/*!< Device address to communicate with PC */
+#define FRAME_DATA_SIZE		(128)	/*!< Data size of frame */
+/*! Size of frame command */
 #define FRAME_CMD_SIZE		(HENBUS_ASCII_CMD_SIZE)
 
-// Czasy powtarzania zadañ (w ms)
+// Time of task repetition (in ms)
 
-/*! Czas co jaki s¹ wysy³ane dane pomiarowe (w ms) */
+/*! Interval of measurement data sending (in ms) */
 #define DATA_SEND_TIME		(100 / PC_COMM_TASK_TIME)
 
-/* Sekcja deklaracji ---------------------------------------------------------*/
+/* Declaration section -------------------------------------------------------*/
 
-// --->Typy
+// --->Types
 
 /**
- * @brief Komendy do komunikacji z PC
+ * @brief Commands to communicate with PC
  */
 typedef enum
 {
-	/*! ¯¹danie wys³ania informacji o urz¹dzeniu (Get Device Info) */
+	/*! Request of sending information about device (Get Device Info) */
 	PSC_GDI,
-	/*! ¯¹danie rozpoczêcia wysy³ania danych (Start Send Data) */
+	/*! Request of data sending start (Start Send Data) */
 	PSC_SSD,
-	/*! ¯¹danie zaprzestania wysy³ania danych (Terminate Send Data) */
+	/*! Request of data sending stop (Terminate Send Data) */
 	PSC_TSD,
-	/*! ¯¹danie rozpoczêcia wysy³ania danych oscyloskopu
-	    (Start Logger Data) */
+	/*! Request of oscilloscope data sending start (Start Logger Data) */
 	PSC_SLD,
-	/*! ¯¹danie zaprzestania wysy³ania danych oscyloskopu
-	    (Terminate Logger Data) */
+	/*! Request of oscilloscope data sending stop (Terminate Logger Data) */
 	PSC_TLD,
-	/*! Pobieranie przez PC danych ustawionych (Get Set Data) */
+	/*! Gathering by PC of set data (Get Set Data) */
 	PSC_GSD,
-	/*! Ustawianie parametrów zasilacza (Send Device Settings) */
+	/*! Setting power supply settings (Send Device Settings) */
 	PSC_SDS,
-	/*! Ramka testowa watchdog'a (WatchDog Test) */
+	/*! Test frame of watchdog (WatchDog Test) */
 	PSC_WDT,
-	/*! OdpowiedŸ na ramkê watchdog'a (WatchDog Answer)*/
+	/*! Watchdog frame response (WatchDog Answer)*/
 	PSC_WDA,
-	/*! Liczba komend */
+	/*! Commands number */
 	PSC_AMOUNT
 }EPSCommand_t;
 
 /**
- * @brief Dane wysy³ane do PC
+ * @brief Data sending to PC
  */
 typedef struct  
 {
 	struct
 	{
-		/*! Zadane napiêcie w mV */
+		/*! Set voltage in mV */
 		uint16_t Voltage        : 15;
-		/*! Zadane natê¿enie pr¹du w mA */
+		/*! Set current in mA */
 		uint16_t Current        : 11;
-		/*! Czas ³agodnego startu w sekundach */
+		/*! Soft-start time in seconds */
 		uint16_t SoftStartTime  : 6;
-	}ChannelSetData;				/*!< Dane zadane kana³u */
+	}ChannelSetData;						/*!< Set values of channel */
 
 	struct  
 	{
-		/*! Napiêcie w mV */
+		/*! Voltage in mV */
 		uint16_t Voltage           : 15;
-		/*! Natê¿enie pr¹du w mA */
+		/*! Current in mA */
 		uint16_t Current		   : 11;
-		/*! Temperatura stabilizatora */
+		/*! Voltage regulator temperature */
 		uint16_t Temperature       : 11;
-	}ChannelMeasuredData;			/*!< Dane zmierzone kana³u */
+	}ChannelMeasuredData;					/*!< Measured data of channel */
 
 	struct
 	{
-		/*! Napiêcie w mV */
+		/*! Voltage in mV */
 		uint16_t Voltage       : 15;
-		/*! Natê¿enie pr¹du w mA */
+		/*! Current in mA */
 		uint16_t Current       : 11;
-	}ChannelUnfilteredData;				/*!< Dane oscyloskopu */
+	}ChannelUnfilteredData;					/*!< Oscilloscope data */
 }PCCommData_t;
 
-// --->Funkcje
+// --->Functions
 
-// Inicjalizacja kontrolera obs³ugi danych zasilacza
+/*----------------------------------------------------------------------------*/
+/**
+* @brief    Controller initialization
+* @param    None
+* @retval   None
+*/
 void PSDataService_Init();
-// Funkcja obs³ugi komunikacji z PC
+
+/*----------------------------------------------------------------------------*/
+/**
+* @brief    Communication with PC handler
+* @param    None
+* @retval   None
+*/
 void PSDataService_Handler();
-// Funkcja zwracaj¹ca stan po³¹czenia z PC
+
+/*----------------------------------------------------------------------------*/
+/**
+* @brief    Gets PC connection state
+* @param    None
+* @retval   Connection status (true - connected)
+*/
 bool PSDataService_GetIsConnected();
 
 #endif								/* PS_DATA_SERVICE_H */
 
-/******************* (C) COPYRIGHT 2013 HENIUS *************** KONIEC PLIKU ***/
+/******************* (C) COPYRIGHT 2013 HENIUS *************** END OF FILE ****/

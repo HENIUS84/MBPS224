@@ -1,10 +1,10 @@
 /**
  *******************************************************************************
- * @file     ThermalController.h
+ * @file     Peripherals.h
  * @author   HENIUS (Pawe³ Witak)
  * @version  1.1.2
  * @date     09-01-2014
- * @brief    Obs³uga peryferiów (plik nag³ówkowy)
+ * @brief    Peripherals driver (header file)
  *******************************************************************************
  *
  * <h2><center>COPYRIGHT 2013 HENIUS</center></h2>
@@ -13,14 +13,14 @@
 #ifndef  PERIPHERALS_H_
 #define  PERIPHERALS_H_
 
-/* Sekcja include ------------------------------------------------------------*/
+/* Include section -----------------------------------------------------------*/
 
-// --->Pliki systemowe
+// --->System files
 
 #include <stdint.h>
 #include <stdbool.h>
 
-// --->Pliki u¿ytkownika
+// --->User files
 
 #include "PSMcontroller.h"
 #include "OWIThermometer.h"
@@ -29,9 +29,9 @@
 #include "Audio.h"
 #include "SerialPort.h"
 
-/* Sekcja sta³ych, makr i definicji ------------------------------------------*/
+/* Macros, constants and definitions section ---------------------------------*/
 
-// --->Sta³e
+// --->Constants
 
 // Modu³ zasilacza
 #define PSM_BASE_ID			(0x10)	/*!< Adres bazowy modu³ów po I2C */
@@ -42,30 +42,48 @@
 /*! Domyœlna wartoœæ zadanego natê¿enia pr¹du */
 #define DEFAULT_SET_CURRENT	(1000)
 
-/* Sekcja deklaracji ---------------------------------------------------------*/
+/* Declaration section -------------------------------------------------------*/
 
 // --->Zmienne
 
-// Dane pomiarowe modu³ów
+/*! Measurement data of modules */
 extern PSMCData_t PSMData[PSM_TABLE_SIZE];
-// Prêdkoœci komunikacji z modu³ami
+/*! Module communication speed */
 extern CommSpeed_t CommunicationSpeed;
-// Dane kontrolera temperatury 
+/*! Data of thermometer controller */
 extern ThermalData_t ThermalData;
-// Kontroler obs³ugi termometrów na 1-Wire
+/*! Controller of 1-Wire thermometers */
 extern OWIThermoCtrl_t ThermometerController;
-// Kontroler portu szeregowego */
+/*! Serial port controller structure */
 extern SPController_t SerialPortController;
 
-// --->Funkcje
+// --->Functions
 
-// Inicjalizacja peryferiów
+/*----------------------------------------------------------------------------*/
+/**
+* @brief    Peripherals initialization
+* @param    *peripherals : pointer to the peripheral structure
+* @retval   None
+*/
 void InitPeripherals(void);
-// Pobieranie liczby pod³¹czonych modu³ów
+
+/*----------------------------------------------------------------------------*/
+/**
+ * @brief    Gets nu number of connected modules
+ * @param    None
+ * @retval   Number of connected modules
+ */
 uint8_t GetPSModulesNumber(void);
-// Aktywacja/dezaktywacja modu³u zasilacza
+
+/*----------------------------------------------------------------------------*/
+/**
+ * @brief    Activation/deactivation of power supply module
+ * @param    isEnabled : activation flag
+ * @param    moduleNumber : module index
+ * @retval   None
+ */
 void SetRegulator(bool isEnabled, uint8_t moduleNumber);
 
 #endif								/* PERIPHERALS_H_ */
 
-/******************* (C) COPYRIGHT 2013 HENIUS *************** KONIEC PLIKU ***/
+/******************* (C) COPYRIGHT 2013 HENIUS *************** END OF FILE ****/

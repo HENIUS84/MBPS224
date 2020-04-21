@@ -4,7 +4,7 @@
  * @author   HENIUS (Paweł Witak)
  * @version  1.1.2
  * @date     03-05-2013
- * @brief    Obsługa menu (plik nagłówkowy)
+ * @brief    Menu implementation (header file)
  *******************************************************************************
  *
  * <h2><center>COPYRIGHT 2013 HENIUS</center></h2>
@@ -13,267 +13,258 @@
 #ifndef MENU_H_
 #define MENU_H_
 
-/* Sekcja include ------------------------------------------------------------*/
+/* Include section -----------------------------------------------------------*/
 
-// --->Pliki systemowe
+// --->System files
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 
-// --->Pliki użytkownika
+// --->User files
 
 #include "Hardware.h"
 
-/* Sekcja stałych, makr i definicji ------------------------------------------*/
+/* Macros, constants and definitions section ---------------------------------*/
 
-// --->Stałe
+// --->Constants
 
-/*! Timeout po jakim zostanie wyłączony LCD */
-#define LCD_OFF_TIMEOUT		(6000)
-#define CURSOR_TIME			(50)	/*!< Czas migotania kursora edycji
-                                         (uzależniony od czasu odpytywania
-                                         funkcji obsługi przycisków menu) */
-#define LOW_VOLTAGE			600		/*!< Dolna granica napięcia */
-#define HIGH_VOLTAGE		24000	/*!< Górna granica napięcia */
-#define LOW_VOLTAGE_PWM		0		/*!< Dolna granica PWM napięcia */
-#define HIGH_VOLTAGE_PWM	1023	/*!< Górna granica PWM napięcia */
-#define LOW_CURRENT			(1)		/*!< Dolna granica natężenia prądu */
-#define HIGH_CURRENT		(1000)	/*!< Górna granica natężenia prądu */
-#define DISP_BACKL_MIN		(10)	/*!< Minimalna wartość podświetlenia */
-#define DISP_BACKL_MAX      (100)	/*!< Maksymalna wartość podświetlenia */
-#define DISP_BACKL_STEPS	(11)    /*!< Liczba kroków ustawień podświetlenia */
-/* Wielkość kroku w ustawianiu podświetlenia (maks. 10 poziomów) */
+#define LCD_OFF_TIMEOUT		(6000)	/*!< LCD off timeout */
+#define CURSOR_TIME			(50)	/*!< Period of blinking edition cursor
+                                         (depends on button handler interval) */
+#define LOW_VOLTAGE			600		/*!< Low voltage limit */
+#define HIGH_VOLTAGE		24000	/*!< High voltage limit */
+#define LOW_VOLTAGE_PWM		0		/*!< Low voltage PWM limit */
+#define HIGH_VOLTAGE_PWM	1023	/*!< High voltage PWM limit */
+#define LOW_CURRENT			(1)		/*!< Low current limit */
+#define HIGH_CURRENT		(1000)	/*!< High current limit */
+#define DISP_BACKL_MIN		(10)	/*!< Min. LCD backlight level*/
+#define DISP_BACKL_MAX      (100)	/*!< Max. LCD backlight level */
+#define DISP_BACKL_STEPS	(11)    /*!< Steps of backlight setting */
+/* Backlight step size (max. 10 levels) */
 #define DISP_BACKL_STEP		((DISP_BACKL_MAX - DISP_BACKL_MIN) / \
-                             (DISP_BACKL_STEPS - 1))
-/*! Minimalny czas łagodnego startu (w sekundach) */ 							 
-#define SOFT_START_TIME_MIN	(0)
-/*! Maksymalny czas łagodnego startu (w sekundach) */
-#define SOFT_START_TIME_MAX	(60)	
-/*! Maksymalna wartość parametru maksymalnej temperatury */
-#define MAX_TEMP_MAX		(800)
-/*! Minimalna wartość parametru maksymalnej temperatury */
-#define MAX_TEMP_MIN		(200)
-/*! Maksymalna wartość parametru histerezy temperatury */
-#define TEMP_HISTERESIS_MAX	(100)
-/*! Minimalna wartość parametru histerezy temperatury */
-#define TEMP_HISTERESIS_MIN	(10)
+                             (DISP_BACKL_STEPS - 1))							 
+#define SOFT_START_TIME_MIN	(0)		/*!< Min. time of soft-start (in sec.) */
+#define SOFT_START_TIME_MAX	(60)	/*!< Max. time of soft-start (in sec.) */
+#define MAX_TEMP_MAX		(800)	/*!< Max. value of max. temperature */
+#define MAX_TEMP_MIN		(200)	/*!< Min. value of max. temperature */
+#define TEMP_HISTERESIS_MAX	(100)	/*!< Max. value of temperature hysteresis */
+#define TEMP_HISTERESIS_MIN	(10)	/*!< Min. value of temperature hysteresis */
 
-// --->Makra
+// --->Macros
 
-// Dźwięki przycisków
-/*! Domyślny dźwięk przycisku */
-#define KEY_BEEP()			Beep(500, 100)
-/*! Dźwięk niedozwolonej operacji */
-#define WRONG_BEEP()		Beep(250, 100)
-/*! Dźwięk wejścia w tryb edycji */
-#define EDITION_BEEP()		Beep(650, 300)
-/*! Dźwięk przeciążenia */
-#define OVERLOAD_BEEP()		Beep(1000, -1)
+// Keys tones
 
-/*! Pobieranie liczby ekranów */
+#define KEY_BEEP()			Beep(500, 100)	/*!< Default key beep */
+#define WRONG_BEEP()		Beep(250, 100)	/*!< Wrong operation beep */
+#define EDITION_BEEP()		Beep(650, 300)	/*!< Edition enabled beep */
+#define OVERLOAD_BEEP()		Beep(1000, -1)	/*!< Overload beep */
+
+/*! Getting screen number */
 #define AMOUNT_OF_SCREENS(x)	(sizeof(x) / sizeof(Screen_t))
 
-// --->Typy
+// --->Types
 
 /**
- * @brief Indeksy napisów
+ * @brief Captions indexes
  */
 typedef enum
 {
-    CI_CHANNEL1_LABEL,				/*!< Etykieta kanału #1 */
-    CI_CHANNEL2_LABEL,				/*!< Etykieta kanału #2 */
-    CI_SET_VALUES,					/*!< Etykieta wartości zadanych */
-    CI_LEFT_NAVIGATOR,				/*!< Lewy nawigator */
-    CI_RIGHT_NAVIGATOR,				/*!< Prawy nawigator */
-    CI_RIGHTS,						/*!< Informacja o prawach autorskich */
-    CI_FW_VERSION,					/*!< Informacja o wersji oprogramowania */
-    CI_FLOAT_VALUE_1,				/*!< Wartość zmienno-przecinkowa 1 */
-    CI_VOLTAGE_UNIT,				/*!< Jednostka napięcia */
-    CI_LOW_RESISTANCE_UNIT,			/*!< Jednostka niskiej rezystancji */
-    CI_LOW_POWER_UNIT,				/*!< Jednostka niskiej mocy */
-    CI_TEMPERATURE_UNIT,			/*!< Jednostka temperatury */
-    CI_CURRENT_UNIT,				/*!< Jednostka natężenia prądu */
-    CI_INT_VALUE,					/*!< Wartość całkowita */
-    CI_TEMPERATURES,				/*!< Etykieta temperatur */
-    CI_MEASURED_VALUES,				/*!< Etykieta wartości zmierzonych */
-    CI_POWER_RESISTANCE,			/*!< Etykieta mocy/rezystancji */
-    CI_HIGH_POWER_UNIT,				/*!< Jednostka dużej mocy */
-    CI_MED_RESISTANCE_UNIT,			/*!< Jednostka średniej rezystancji */
-    CI_HI_RESISTANCE_UNIT,			/*!< Jednostka dużej rezystancji */
-    CI_MB_TEMP_LABEL,				/*!< Etykieta temperatury płyty głównej */
-    CI_INFINITY_SYMBOL,				/*!< Symbol nieskończoności */
-    CI_SETTINGS,                    /*!< Etykieta ustawień */
-    CI_SOUND,						/*!< Etykieta ustawień dźwięku */
-    CI_DISPLAY, 					/*!< Etykieta ustawień wyświetlacza */
-    CI_LANGUAGE,					/*!< Etykieta ustawień języka */
-    CI_MENU_LANGUAGE,				/*!< Etykieta ustawień języka */
-    CI_SET_PWM,						/*!< Etykieta ustawień wartości PWM */
-    CI_ADC_VALUES,					/*!< Etykieta wartości zmierzonych ADC */
-    CI_VOLTAGE_PWM_UNIT,			/*!< JEdnostka PWM napięcia */
-    CI_CURRENT_PWM_UNIT,			/*!< Jednostka PWM natężenia prądu */	
-	CI_SOUND_OFF,					/*!< Informacja o wyłączonym dźwięku */
-    CI_SOUND_ON,					/*!< Informacja o włączonym dźwięku */
-    CI_FLOAT_VALUE_2,				/*!< Wartość zmienno-przecinkowa 2 */
-    CI_FLOAT_VALUE_3,				/*!< Wartość zmienno-przecinkowa 3 */
-    CI_OVERCURRENT,					/*!< Znak przekroczenia natężenia prądu */
-    CI_GENERAL_SETTINGS,			/*!< Etykieta ustawień ogólnych */
-    CI_PS_SETTINGS,					/*!< Etykieta ustawień zasilacza */
-	/*! Etykieta ustawień ogólnych w górnej belce */
-    CI_GENERAL_SETTINGS_LABEL,		
-	/*! Etykieta ustawień łagodnego startu kanału #1 */
-    CI_SOFT_START_1,	
-	/*! Etykieta ustawień łagodnego startu kanału #2 */			
-    CI_SOFT_START_2,			
-	/*! Etykieta ustawień zasilacza w górnej belce */	
-    CI_PS_SETTINGS_LABEL,	
-	/*! Jednostka czasu łagodnego startu */		
-    CI_SOFT_START_UNIT,			
-    CI_ABOUT,						/*!< Informacje o programie */
-    CI_COMMUNICATION,				/*!< Komunikacja */
-    CI_DATA_RATE,					/*!< Prędkość transmisji */
-    CI_MESSAGE_SIZE,				/*!< Rozmiar komunikatu */
-    CI_RX_DATA,						/*!< Informacja o danych odbieranych */
-    CI_TX_DATA,						/*!< Informacja o danych wysyłanych */
-    CI_FIRMWARE, 	                /*!< Informacja o oprogramowaniu */
-	/*! Informacja o oprogramowaniu modułu #1 */
-	CI_FIRMWARE1, 	                 
-	/*! Informacja o oprogramowaniu modułu #2 */
-	CI_FIRMWARE2, 	       
-	/*! Informacja o wersji  oprogramowania płyty głównej */        
-    CI_MB_VERSION,		
-	/*! Informacja o wersji  oprogramowania modułu */
-	CI_PSM_VERSION,			
-	/*! Data zbudowania oprogramowania (pełna wersja) */	
-    CI_FULL_BUILD_DATE,	
-	/*! Data zbudowania oprogramowania (skrócona wersja) */
-	CI_SHORT_BUILD_DATE,			
-	CI_MAX_TEMP,					/*!< Etykieta ustawień maksymalnej temp. */
-	CI_TEMP_HYSTERESIS,				/*!< Etykieta ustawień histerezy temp. */
-	CI_TEMP_PROTECTION,				/*!< Etykieta ustawień zabezp. temp. */
-	/*! Informacja o włączonym zabezpieczeniu termicznym */
+    CI_CHANNEL1_LABEL,				/*!< Canal #1 label */
+    CI_CHANNEL2_LABEL,				/*!< Canal #2 label  */
+    CI_SET_VALUES,					/*!< Set values */
+    CI_LEFT_NAVIGATOR,				/*!< Left navigator */
+    CI_RIGHT_NAVIGATOR,				/*!< Right navigator */
+    CI_RIGHTS,						/*!< Copyrights information */
+    CI_FW_VERSION,					/*!< Firmware version */
+    CI_FLOAT_VALUE_1,				/*!< Float value 1 */
+    CI_VOLTAGE_UNIT,				/*!< Voltage unit */
+    CI_LOW_RESISTANCE_UNIT,			/*!< Unit of low resistance */
+    CI_LOW_POWER_UNIT,				/*!< Unit of low power */
+    CI_TEMPERATURE_UNIT,			/*!< Temperature unit */
+    CI_CURRENT_UNIT,				/*!< Current unit */
+    CI_INT_VALUE,					/*!< Integer value */
+    CI_TEMPERATURES,				/*!< Temperatures caption */
+    CI_MEASURED_VALUES,				/*!< Measured values */
+    CI_POWER_RESISTANCE,			/*!< Label of power/resistance */
+    CI_HIGH_POWER_UNIT,				/*!< Unit of high power */
+    CI_MED_RESISTANCE_UNIT,			/*!< Unit of medium resistance */
+    CI_HI_RESISTANCE_UNIT,			/*!< Unit of high resistance */
+    CI_MB_TEMP_LABEL,				/*!< Label of main board temperature */
+    CI_INFINITY_SYMBOL,				/*!< Infinity symbol */
+    CI_SETTINGS,                    /*!< Settings label */
+    CI_SOUND,						/*!< Sound settings label */
+    CI_DISPLAY, 					/*!< Display settings label */
+    CI_LANGUAGE,					/*!< Language settings label */
+    CI_MENU_LANGUAGE,				/*!< Language settings label */
+    CI_SET_PWM,						/*!< PWMsettings label */
+    CI_ADC_VALUES,					/*!< ADC measurements data */
+    CI_VOLTAGE_PWM_UNIT,			/*!< Unit of PWM voltage */
+    CI_CURRENT_PWM_UNIT,			/*!< Unit of PWM current */	
+	CI_SOUND_OFF,					/*!< Info about sound off */
+    CI_SOUND_ON,					/*!< Info about sound on */
+    CI_FLOAT_VALUE_2,				/*!< Float value 2 */
+    CI_FLOAT_VALUE_3,				/*!< Float value 3 */
+    CI_OVERCURRENT,					/*!< Sign of overcurrent */
+    CI_GENERAL_SETTINGS,			/*!< General settings label */
+    CI_PS_SETTINGS,					/*!< Power supply settings label */	
+    CI_GENERAL_SETTINGS_LABEL,		/*!< Label of general settings in top bar */
+    CI_SOFT_START_1,				/*!< Canal #1 soft-start settings label */			
+    CI_SOFT_START_2,				/*!< Canal #2 soft-start settings label */		
+	/*! Label of power supply settings in top bar */
+    CI_PS_SETTINGS_LABEL,			
+    CI_SOFT_START_UNIT,				/*!< Time unit of soft-start */
+    CI_ABOUT,						/*!< About screen */
+    CI_COMMUNICATION,				/*!< Communication */
+    CI_DATA_RATE,					/*!< Data speed */
+    CI_MESSAGE_SIZE,				/*!< Message size */
+    CI_RX_DATA,						/*!< RX data information */
+    CI_TX_DATA,						/*!< TX data information */
+    CI_FIRMWARE, 	                /*!< Firmware versions */	
+	CI_FIRMWARE1, 					/*!< Firmware version of module #1 */
+	CI_FIRMWARE2,					/*!< Firmware version of module #2 */
+    CI_MB_VERSION,					/*!< Firmware version of main board */	
+	CI_PSM_VERSION,					/*!< Information about PS module version */
+    CI_FULL_BUILD_DATE,				/*!< Build data (full version) */
+	CI_SHORT_BUILD_DATE,			/*!< Build data (short version) */
+	CI_MAX_TEMP,					/*!< Label of max. temp. settings */
+	CI_TEMP_HYSTERESIS,				/*!< Label of temp. hysteresis settings */
+	CI_TEMP_PROTECTION,				/*!< Label of temp. protection settings */
+	/*! Information about temp. protection activation */
 	CI_TEMP_PROTECTION_ON,			
-	/*! Informacja o wyłączonym zabezpieczeniu termicznym */
+	/*! Information about temp. protection deactivation */
 	CI_TEMP_PROTECTION_OFF,			
 }ECaptionIndex_t;
 
 /**
- * @brief Ekrany menu
+ * @brief Menu screens
  */
 typedef enum
 {
-    MS_START,						/*!< Stan początkowy */
-    MS_SET_VALUES,					/*!< Widok zadanego napięcia i  prądu */
-    MS_SCREEN_SET_VALUES,			/*!< Widok nazwy ekranu wartości zadanych */
-    MS_TEMPERATURES,				/*!< Widok temperatur */
-    MS_SCREEN_TEMPERATURES,			/*!< Widok nazwy ekranu temperatur */    
-    MS_SCREEN_MEASURED_VALUES,		/*!< Widok nazwy ekranu zmierzonych war. */
-    MS_SCREEN_POWER_RESISTANCE,		/*!< Widok nazwy ekranu mocy/rezystancji */
-    MS_MEASURED_VALUES,				/*!< Widok zmierzonego napięcia i  prądu */
-    MS_POWER_RESISTANCE,			/*!< Widok mocy rezystancji */
-    MS_SCREEN_SETTINGS,				/*!< Widok nazwy ekranu ustawień */
-    MS_SETTINGS,					/*!< Widok ustawień programu */
-    MS_SCREEN_SOUND,				/*!< Widok nazwy ekranu ustawień dżwięku */
-    MS_SOUND_SETTINGS,				/*!< Widok ustawień dźwięku */
-    MS_SCREEN_DISPLAY,				/*!< Widok nazwy ekranu ustawień ekranu */
-    MS_DISPLAY_SETTINGS,			/*!< Widok ustawień wyświetlacza */
-    MS_SCREEN_LANGUAGE,				/*!< Widok nazwy ekranu zmiany języka */
-    MS_LANGUAGE_SETTINGS,			/*!< Widok ustawień języka */
-	/*! Widok nazwy ekranu wartości zadanych PWM */
+    MS_START,						/*!< Initial state */
+    MS_SET_VALUES,					/*!< View of set voltage and current */
+    MS_SCREEN_SET_VALUES,			/*!< View of name of set values screen */
+    MS_TEMPERATURES,				/*!< View of temperatures */
+    MS_SCREEN_TEMPERATURES,			/*!< View of name of temperature screen */    
+    MS_SCREEN_MEASURED_VALUES,		/*!< View of name of measured values screen */
+    MS_SCREEN_POWER_RESISTANCE,		/*!< View of name of power/resistance screen */
+    MS_MEASURED_VALUES,				/*!< View of measured voltage and current */
+    MS_POWER_RESISTANCE,			/*!< View of power/resistance */
+    MS_SCREEN_SETTINGS,				/*!< View of name of settings screen */
+    MS_SETTINGS,					/*!< View of program settings */
+    MS_SCREEN_SOUND,				/*!< View of name of sound settings screen */
+    MS_SOUND_SETTINGS,				/*!< View of sound settings */
+    MS_SCREEN_DISPLAY,				/*!< View of name of display settings screen */
+    MS_DISPLAY_SETTINGS,			/*!< View of display settings */
+    MS_SCREEN_LANGUAGE,				/*!< View of name of language screen */
+    MS_LANGUAGE_SETTINGS,			/*!< View of language settings */
+	/*! View of name of voltage PWM set values screen */
     MS_SCREEN_SET_PWM,				
-    MS_SET_PWM,						/*!< Widok wartości zadanych PWM napięcia */
-    MS_SCREEN_ADC_VALUES,			/*!< Widok nazwy ekranu wartości ADC */
-    MS_ADC_VALUES,					/*!< Widok wartości zmierzonych ADC */
-    MS_SCREEN_GENERAL_SETTINGS,		/*!< Widok nazwy ekranu ustawień ogólnych */
-    MS_GENERAL_SETTINGS,			/*!< Widok ustawień ogólnych */
-    MS_SCREEN_PS_SETTINGS,			/*!< Widok nazwy ekranu ustawień modułu */
-    MS_PS_SETTINGS,					/*!< Widok ustawień zasilacza */
-	/*! Widok nazwy ekranu ustawień łagodnego startu kanału #1 */
+    MS_SET_PWM,						/*!< View of voltage PWM set values */
+    MS_SCREEN_ADC_VALUES,			/*!< View of name of ADC values screen */
+    MS_ADC_VALUES,					/*!< View of measured ADC values */
+    MS_SCREEN_GENERAL_SETTINGS,		/*!< View of name of general settings screen */
+    MS_GENERAL_SETTINGS,			/*!< View of general settings */
+    MS_SCREEN_PS_SETTINGS,			/*!< View of name of PS module settings screen */
+    MS_PS_SETTINGS,					/*!< View of PS settings */
+	/*! View of name of channel #1 Soft-Start settings screen */
     MS_SCREEN_SS1_SETTINGS,		
-	/*! Widok ustawień łagodnego startu kanału #1 */	
+	/*! View of channel #1 Soft-Start settings */
     MS_SS1_SETTINGS,		
-	/*! Widok nazwy ekranu ustawień łagodnego startu kanału #2 */		
+	/*! View of name of channel #2 Soft-Start settings screen */
     MS_SCREEN_SS2,	
-	/*! Widok ustawień łagodnego startu kanału #2 */				
-    MS_SS2_SETTINGS,	
-	/*! Widok nazwy ekranu informacji o programie */			
-    MS_SCREEN_ABOUT,				
-    MS_ABOUT,						/*!< Widok informacji o programie */
-	/*! Widok nazwy ekranu informacji o komunikacji */
-    MS_SCREEN_COMMUNICATION,	
-	/*! Widok ekranu informacji o komunikacji */	
-    MS_COMMUNICATION,	
-	/*! Widok nazwy ekranu informacji o oprogramowaniu */			
-    MS_SCREEN_FIRMWARE,		
-	/*! Widok ekranu informacji o oprogramowaniu */		
-    MS_FIRMWARE,    
-	/*! Widok nazwy ekranu ustawień maksymalnej temperatury */	                
+	/*! View of channel #2 Soft-Start settings */				
+    MS_SS2_SETTINGS,
+    MS_SCREEN_ABOUT,				/*!< View of name of about screen */	
+    MS_ABOUT,						/*!< View of about screen */
+	/*! View of name of communication info screen */
+    MS_SCREEN_COMMUNICATION,		
+    MS_COMMUNICATION,				/*!< View of communication screen */
+	/*! View of name of firmware version screen */			
+    MS_SCREEN_FIRMWARE,
+    MS_FIRMWARE,					/*!< View of firmware version screen */
+	/*! View of name of max. temp settings screen */	                
 	MS_SCREEN_MAX_TEMP,						
-	MS_MAX_TEMP_SETTINGS,			/*!< Widok ustawień maks. temperatury */
-	/*! Widok nazwy ekranu ustawień histerezy temperatury */	
+	MS_MAX_TEMP_SETTINGS,			/*!< View of max. temp settings screen */
+	/*! View of name of temp. hysteresis settings screen */
 	MS_SCREEN_TEMP_HYSTERESIS,				
-	MS_TEMP_HYSTERESIS_SETTINGS,	/*!< Widok ustawień histerezy temperatury */
-	/*! Widok nazwy ekranu ustawień zabezpieczenia temperaturowego */
+	MS_TEMP_HYSTERESIS_SETTINGS,	/*!< View temp. hysteresis settings screen */
+	/*! View of name of temp. protection settings screen */
 	MS_SCREEN_TEMP_PROTECTION,		
-	/*! Widok ustawień zabezpieczenia temperaturowego */
+	/*! View of temp. protection settings screen */
 	MS_TEMP_PROTECTION_SETTINGS,
-	/*! Widok nazwy ekranu informacji o oprogramowaniu modułu #1 */
+	/*! View of name of module #1 firmware version screen */
 	MS_SCREEN_FIRMWARE1,
-	/*! Widok ekranu informacji o oprogramowaniu modułu #1 */
+	/*! View of module #1 firmware version screen */
 	MS_FIRMWARE1,	
-	/*! Widok nazwy ekranu informacji o oprogramowaniu modułu #2 */
+	/*! View of name of module #2 firmware version screen */
 	MS_SCREEN_FIRMWARE2,
-	/*! Widok ekranu informacji o oprogramowaniu modułu #2 */
+	/*! View of module #2 firmware version screen */
 	MS_FIRMWARE2
 }EMenuScreen_t;
 
 /**
- * @brief Obiekt kojarzący ekran i jego opis
+ * @brief Object which integrates screen and its description
  */
 typedef struct
 {
-    EMenuScreen_t Type;				/*!< Typ ekranu */
-    ECaptionIndex_t Name;			/*!< Indeks nazwy ekranu */
-	/*! Flaga oznaczająca ekran dostępny w trybie zaawansowanym */
-    bool AdvancedMode;				
+    EMenuScreen_t Type;				/*!< Screen type */
+    ECaptionIndex_t Name;			/*!< Index of screen name */	
+    bool AdvancedMode;				/*!< Flag for advanced mode */	
 } Screen_t;
 
 /**
- * @brief Stany przycisków menu
+ * @brief States of menu buttons
  */
 typedef enum
 {
-    MKS_SCREEN_NAME,				/*!< Zmiana nazwy ekranu */
-    MKS_VALUE_EDITION,				/*!< Edycja wartości */
-	/*! Naciśnięcie przycisku - wyjście z trybu przekroczenia natężenia prądu */
-    MKS_OVERCURRENT					
+    MKS_SCREEN_NAME,				/*!< Change of screen name */
+    MKS_VALUE_EDITION,				/*!< Value edition */	
+    MKS_OVERCURRENT					/*!< Exit from overcurrent state */
 } MenuKeyState_t;
 
 /**
- * @brief Języki menu
+ * @brief Menu languages
  */
 typedef enum
 {
-    L_ENGLISH,						/*!< Język angielski */
-    L_POLISH,						/*!< Język polski */
-    NUMBER_OF_LANGUAGES				/*!< Liczba języków menu */
+    L_ENGLISH,						/*!< English*/
+    L_POLISH,						/*!< Polish */
+    NUMBER_OF_LANGUAGES				/*!< Number of languages */
 } Language_t;
 
-/* Sekcja deklaracji ---------------------------------------------------------*/
+/* Declaration section -------------------------------------------------------*/
 
-// --->Zmienne
+// --->Variables
 
-bool IsAdvancedMode;				// Flaga oznaczająca tryb zaawansowany
+extern bool IsAdvancedMode;			/*!< Advanced mode */
 
-// --->Funkcje
+// --->Functions
 
-//Funkcja pokazywania ekranu początkowego
+/*----------------------------------------------------------------------------*/
+/**
+ * @brief    Shows splash screen.
+ * @param    None
+ * @retval   None
+ */
 void ShowSplashScreen(void);
-// Funkcja wyboru ekranu menu
+
+/*----------------------------------------------------------------------------*/
+/**
+ * @brief    Buttons handler menu
+ * @param    None
+ * @retval   None
+ */
 void MenuHandler(void);
-// Obsługa przycisków menu
+
+/*----------------------------------------------------------------------------*/
+/**
+ * @brief    Menu screen handler
+ * @param    None
+ * @retval   None
+ */
 void MenuKeysHandler(void);
 
 #endif								/* MENU_H_ */
 
-/******************* (C) COPYRIGHT 2013 HENIUS *************** KONIEC PLIKU ***/
+/******************* (C) COPYRIGHT 2013 HENIUS *************** END OF FILE ****/

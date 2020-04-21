@@ -4,7 +4,7 @@
  * @author   HENIUS (Paweł Witak)                                      
  * @version  1.1.2
  * @date     01-05-2013                                                       
- * @brief    Kontroler transmisji z modułem zasilacza (plik nagłówkowy)
+ * @brief    Module connection controller (header file)
  *******************************************************************************
  *
  * <h2><center>COPYRIGHT 2013 HENIUS</center></h2>
@@ -13,67 +13,67 @@
 #ifndef PSM_CONTROLLER_H_
 #define PSM_CONTROLLER_H_
 
-/* Sekcja include ------------------------------------------------------------*/
+/* Include section -----------------------------------------------------------*/
 
-// --->Pliki użytkownika
+// --->User files
 
 #include "Utils.h"
 #include "Version.h"
 
-// --->Pliki systemowe
+// --->System files
 
 #include <stdio.h>
 #include <stdbool.h>
 
-/* Sekcja  stałych, makr i definicji ------------------------------------------*/
+/* Macros, constants and definitions section ---------------------------------*/
 
-// --->Stałe
+// --->Constants
 
-/*! Interwał czasowy timera mierzącego prędkość transmisji */
+/*! Interval of timer measuring connection speed */
 #define SPEEDMETER_INTERVAL	(1000)
-/*! Timeout komunikacji z modułami (liczba błędnych ramek z rzędu) */
+/*! Module communication timeout (erroneous frame in a row) */
 #define PSMC_ERRORS_LIMIT	(10)
-#define PSMC_TASK_INTERVAL	(50)	/*!< Interwał obsługi zadania w ms */
-/*! Stan startowy kontrolera */
+#define PSMC_TASK_INTERVAL	(50)	/*!< Task interval in ms */
+/*! Initial state of controller */
 #define PSMC_START_STATE	(PSMCS_FIRM_VER_READ_INIT)
 
-// --->Makra
+// --->Macros
 
-/*! Rozmiar (w bajtach) rozkazu zapisu */
+/*! Size of sending command (in Bytes) */
 #define PSMC_SENT_CMD_SIZE	(MEMBER_SIZE(PSMCData_t, Set))
-/*! Rozmiar (w bajtach) danych zapisu */
+/*! Size of sent data (in Bytes) */
 #define PSMC_SENT_DATA_SIZE	(MEMBER_SIZE(PSMCData_t, Set.Data))
-/*! Rozmiar (w bajtach) rozkazu odczytu */
+/*! Size of reading command (in Bytes) */
 #define PSMC_READ_CMD_SIZE	(MEMBER_SIZE(PSMCData_t, Set.Header))
-/*! Rozmiar komunikatu odbieranego od modułu zasilacza */
+/*! Size of message from module */
 #define PSMC_READ_DATA_SIZE	(MEMBER_SIZE(PSMCData_t, Get.Data))
-/*! Rozmiar ramki z wersją oprogramowania */
+/*! Size of frame with firmware version */
 #define PSMC_FIRM_VER_SIZE	(MEMBER_SIZE(PSMCData_t, Get.Firmware))
 
-// --->Typy
+// --->Types
 
 /**
- * @brief Komendy komunikacji z modułem zasilacza
+ * @brief Commands to communicate with module
  */
 typedef enum 
 {
-	MBPSC_SAVE          = 0xA1,		/*!< Wysyłanie danych do modułu zasilacza */
-	MBPSC_READ          = 0xA2,		/*!< Odbieranie danych z modułu zasilacza */
-	MBPSC_READ_FIRM_VER = 0xA3		/*!< Odczyt wersji oprogramowania */
+	MBPSC_SAVE          = 0xA1,		/*!< Sending data to the module */
+	MBPSC_READ          = 0xA2,		/*!< Receiving data from the module */
+	MBPSC_READ_FIRM_VER = 0xA3		/*!< Reading firmware version */
 }EPSMCmd_t;
 
 /**
- * @brief Stan zasilania modułu
+ * @brief State of module power state
  */
 typedef enum
 {
-	PSMS_IDLE,						/*!< Stan bezczynności */
-	PSMS_ON,						/*!< Włączanie modułu */
-	PSMS_OFF						/*!< Wyłączanie modułu */
+	PSMS_IDLE,						/*!< Inactivity state */
+	PSMS_ON,						/*!< Module activation */
+	PSMS_OFF						/*!< Module deactivation */
 }EPSMSState_t;
 
 /**
- * @brief Struktura danych wymienianych między płytą główną i modułem zasilacza
+ * @brief Structure of data sharing between main board and module
  */
 typedef struct 
 {
@@ -81,143 +81,153 @@ typedef struct
 	{
 		struct  
 		{
-			/*! Napięcie w mV */
+			/*! Voltage in mV */
 			uint16_t Voltage           : 15;
-			/*! Nieuśrednione napięcie w mV */
+			/*! Unfiltered voltage in mV */
 			uint16_t UnfilteredVoltage : 15;
-			/*! Natężenie prądu w mA */
+			/*! Current in mA */
 			uint16_t Current		   : 11;
-			/*! Nieuśrednione natężenie prądu */
+			/*! Unfiltered current in mV */
 			uint16_t UnfilteredCurrent : 11;
-			/*! Wartość ADC dla napięcia */
+			/*! ADC value of voltage */
 			uint16_t VoltageADC        : 12;
-			/*! Wartość ADC dla  natężenia prądu */
+			/*! ADC value of current */
 			uint16_t CurrentADC        : 12;			
-			/*! Temperatura stabilizatora */
+			/*! Regulator temperature */
 			uint16_t Temperature       : 11;
-			/*! Stan zasilania modułu (true - moduł włączony ) */
+			/*! Module power state (true - module activated) */
 			uint16_t IsPowerOn         : 1;		
-			/*! Przekroczenie natężenia prądu */	
+			/*! Overcurrent flag */	
 			uint16_t IsOvercurrent     : 1;		
-			/*! Przekroczenie dopuszczalnej wartości temperatury */
+			/*! Overheat flag */
 			uint16_t IsOverheat        : 1;			
-			uint8_t CRC;			/*!< Suma kontrolna */
-		}Data;						/*!< Dane pomiarowe */
+			uint8_t CRC;			/*!< Checksum */
+		}Data;						/*!< Measurement data */
 		
 		struct
 		{
-			FirmwareInfo_t Info;	/*!< Wersja i data oprogramowania */	
-			uint8_t CRC;			/*!< Suma kontrolna */
-		}Firmware;					/*!< Pole z wersją oprogramowania */
-	}Get;							/*!< Dane odebrane */
+			FirmwareInfo_t Info;	/*!< Version and date of firmware */	
+			uint8_t CRC;			/*!< Checksum */
+		}Firmware;					/*!< Field with firmware version */
+	}Get;							/*!< Received data */
  
 	struct 
 	{
 		struct 
 		{
-			/*! Numer odpytywanego urządzenia */
+			/*! Number of requested device */
 			uint8_t DeviceId;				
-			EPSMCmd_t Command;		/*!< Komenda */
-		}Header;					/*!< Nagłówek */
+			EPSMCmd_t Command;		/*!< Command */
+		}Header;					/*!< Header */
 		
 		struct 
 		{	
-			/*! Zadane napięcie w mV */
+			/*! Set voltage in mV */
 			uint16_t Voltage        : 15;
-			/*! Zadane natężenie prądu w mA */						
+			/*! Set current in mA */						
 			uint16_t Current        : 11;			
-			/*! Stan zasilania modułu */
+			/*! Power state of module */
 			EPSMSState_t PowerState : 2;
-			/*! Tryb manualny (ustawianie PWM dla napięcia) */
+			/*! Manual mode (setting PWM value for voltage) */
 			uint16_t ManualMode     : 1;						
-			/*! Czas łagodnego startu w sekundach */						 
+			/*! Soft-start time in seconds */						 
 			uint16_t SoftStartTime  : 6;	
-			/*! Temperatura progowa stabilizatora */
+			/*! Temperature limit for regulator */
 			uint16_t MaxTemperature : 11;
-			/*! Histereza temperatury */
+			/*! Temperature hysteresis */
 			uint16_t TempHisteresis : 7;
-			/*! Flaga zabezpieczenia temperaturowego */ 
+			/*! Thermal protection flag */ 
 			uint16_t TempProtection : 1;
-			uint8_t CRC;			/*!< Suma kontrolna */
-		}Data;						/*!< Wysyłane wartości */
-	}Set;							/*!< Dane wysłane */
+			uint8_t CRC;			/*!< Checksum */
+		}Data;						/*!< Sent values */
+	}Set;							/*!< Sent data */
 		
 	struct 
 	{
-		uint16_t ErrorCounter : 6;	/*!< Licznik błędnych ramek */
-		uint16_t IsConnected  : 1;	/*!< Czy moduł jest podłączony? */
-	}ConnReg;						/*!< Rejestr komunikacji z modułem */
+		uint16_t ErrorCounter : 6;	/*!< Counter of erroneous frames */
+		uint16_t IsConnected  : 1;	/*!< Connection state */
+	}ConnReg;						/*!< Module connection register */
 	
 	struct  
 	{
 		struct  
 		{
-			uint16_t Power;			/*!< Moc wyjściowa w mW */
-			uint32_t Resistance;	/*!< Rezystancja obciążenia w ohm */		
-		}Unfiltered;				/*!< Wartości nieuśrednione */
+			uint16_t Power;			/*!< Output power in mW */
+			uint32_t Resistance;	/*!< Load resistance in ohms */		
+		}Unfiltered;				/*!< Unfiltered values */
 		
 		struct 
 		{
-			uint16_t Power;			/*!< Moc wyjściowa w mW (uśredniona) */
-			/*! Rezystancja obciążenia w ohm (uśredniona) */
+			uint16_t Power;			/*!< Output power in mW (unfiltered) */
+			/*! Load resistance in ohms (unfiltered) */
 			uint32_t Resistance;
-		}Filtered;					/*!< Wartości uśrednione */
-	}ProcessedData;					/*!< Wartości przetworzone */		
+		}Filtered;					/*!< Filtered values */
+	}ProcessedData;					/*!< Processed data */		
 }PSMCData_t;
 
 /**
- * @brief Prędkości komunikacji (w b/s)
+ * @brief Communication speed (w b/s)
  */
 typedef struct 
 {
-	uint32_t TxDataRate;		/*<! Prędkość nadawcza */
-	uint32_t RxDataRate;		/*!< Prędkość dbiorcza	*/
+	uint32_t TxDataRate;		/*<! TX speed rate */
+	uint32_t RxDataRate;		/*!< RX speed rate */
 }CommSpeed_t;				
 
 /**
- * @brief Stany kontrolera komunikacji z modułami zasilacza
+ * @brief Communication controller states (with modules)
  */
 typedef enum 
 {
-	/*! Inicjalizacja odczytu wersji oprogramowania modułu */
+	/*! Reading of module firmware version initialization */
 	PSMCS_FIRM_VER_READ_INIT,		
-	/*! Żądanie odczytu wersji oprogramowania modułu */
+	/*! Request of reading of module firmware version */
 	PSMCS_FIRM_VER_REQUEST,	
-	PSMCS_FIRM_VER_READ,			/*!< Odzcyt wersji oprogramowania modułu */
-	PSMCS_READ_INIT,				/*!< Inicjalizacja odczytu z modułu */
-	PSMCS_DATA_REQUEST,				/*!< Żądanie odczytu danych z modułu */
-	PSMCS_BUFF_READ,				/*!< Odzcyt bufora modułu */
-	PSMCS_SAVE,  					/*!< Zapis danych do modułu */
+	PSMCS_FIRM_VER_READ,			/*!< Reading of module firmware version */
+	PSMCS_READ_INIT,				/*!< Module reading initialization */
+	PSMCS_DATA_REQUEST,				/*!< Request of module reading */
+	PSMCS_BUFF_READ,				/*!< Reading of module buffer */
+	PSMCS_SAVE,  					/*!< Writing the module buffer */
 }EPSMCState_t;
 
 /**
- * @brief Struktura danych dla kontrolera
+ * @brief Structure of controller data
  */
 typedef struct  
 {
-	/*! Wskaźnik do tablicy na dane modułów (przygotować także miejsce na 
-	 *! pamięć poprawnych wartości) */
+	/*! Pointer to the table with module data */
 	PSMCData_t *ModData;
-	/*!< Wskaźnik do struktury z prędkośćiami transmisji */		
+	/*!< Pointer to the connection speed structures */		
 	CommSpeed_t *SpeedData;
-	uint8_t AmountOfModules;		/*!< Liczba modułów */
-	uint8_t TaskTime;				/*!< Czas zadania w ms */
+	uint8_t AmountOfModules;		/*!< Module number */
+	uint8_t TaskTime;				/*!< Task duration in ms */
 }PSMController_t;
 
-/* Sekcja deklaracji ---------------------------------------------------------*/
+/* Declaration section -------------------------------------------------------*/
 
-// ---> Zmienne
+// --->Variables
 
-// Stan kontrolera komunikacji z modułami zasilaczy
+/*! Communication controller state (with modules) */
 extern EPSMCState_t PSMCState;
 
-// ---> Funkcje
+// --->Functions
 
-// Inicjalizacja kontrolera komunikacji z modułem zasilacza
+/*----------------------------------------------------------------------------*/
+/**
+ * @brief    Initializes communication controller with modules
+ * @param    *data : pointer to the structure with controller data 
+ * @retval   None 
+ */
 void PSMController_Init(PSMController_t *data);
-// Funkcja obsługi komunikacji z modułami zasilacz
+
+/*----------------------------------------------------------------------------*/
+/**
+ * @brief    Module communication handler
+ * @param    None
+ * @retval   None
+ */
 void PSMController_Handler();
 
 #endif 										/* PSM_CONTROLLER_H_ */
 
-/******************* (C) COPYRIGHT 2013 HENIUS *************** KONIEC PLIKU ***/
+/******************* (C) COPYRIGHT 2013 HENIUS *************** END OF FILE ****/

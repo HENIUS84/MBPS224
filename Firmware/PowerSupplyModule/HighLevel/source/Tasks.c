@@ -4,15 +4,15 @@
  * @author   HENIUS (Paweł Witak)
  * @version  1.1.1
  * @date     04-04-2011
- * @brief    Zestaw zadań obsługiwanych przez moduł zasilacza
+ * @brief    List of tasks handled by PS module
  *******************************************************************************
  *
  * <h2><center>COPYRIGHT 2011 HENIUS</center></h2>
  */
 
-/* Sekcja include ------------------------------------------------------------*/
+/* Include section -----------------------------------------------------------*/
 
-// --->Pliki systemowe
+// --->System files
 
 #include <stdint.h>
 #include <stdio.h>
@@ -20,7 +20,7 @@
 #include <avr/pgmspace.h>
 #include <stdbool.h>
 
-// --->Pliki użytkownika
+// --->User files
 
 #include "Tasks.h"
 #include "Hardware.h"
@@ -34,28 +34,17 @@
 #include "Debug.h"
 #include "Peripherals.h"
 
-/* Sekcja funkcji ------------------------------------------------------------*/
+/* Function section ----------------------------------------------------------*/
 
 /*----------------------------------------------------------------------------*/
-/**
- * @brief    Główne zadanie systemowe 1 ms
- * @param    Brak
- * @retval   Brak
- */
 void MainSystemTask(void)
 {
-	StatLedHandler();			// Obsługa migania diodą
+	StatLedHandler();
 }
 
 /*----------------------------------------------------------------------------*/
-/**
- * @brief    Zadanie obsługi pomiarów napięcia i natężenia prądu
- * @param    Brak
- * @retval   Brak
- */
 void MultimeterTask(void)
 {
-	// Timer zadania
 	static uint8_t timer = MULTIMETER_TASK_TIME;
 	
 	if (!(--timer))
@@ -78,45 +67,28 @@ void MultimeterTask(void)
 }
 
 /*----------------------------------------------------------------------------*/
-/**
- * @brief    Zadanie obsługi pomiaru temperatury stabilizatora
- * @param    Brak
- * @retval   Brak
- */
 void TemperatureTask(void)
 {
-	// Timer zadania
 	static uint8_t timer = TEMP_TASK_TIME;
 	
 	if (!(--timer))
 	{
 		timer = TEMP_TASK_TIME;
-		
-		// Odczyt temperatury i jej znaku wprost z czujnika
 		OWIThermo_Handler();
-	
-		// Konwersja temperatury
 		MBCommController.MBData.Set.Data.Temperature = 
 			ThermometerController.Temperatures[0] * 10 / 16;
 	}	
 }
 
 /*----------------------------------------------------------------------------*/
-/**
- * @brief    Zadanie obsługi regulatora napięcia i natężenia prądu
- * @param    Brak
- * @retval   Brak
- */
 void RegulatorTask(void)
 {
-	// Timer zadania
 	static uint8_t timer = REGULATOR_TASK_TIME;
 	
 	if (!(--timer))
 	{
 		timer = REGULATOR_TASK_TIME;
 		
-		// Pobieranie niezbędnych danych dla regulatora
 		PSMReg.ManualMode = MBCommController.MBData.Get.Data.ManualMode;
 		PSMReg.SetCurrent = MBCommController.MBData.Get.Data.Current;
 		PSMReg.SetVoltage = MBCommController.MBData.Get.Data.Voltage;
@@ -130,10 +102,9 @@ void RegulatorTask(void)
 		PSMReg.Temperature = MBCommController.MBData.Set.Data.Temperature;
 		MBCommController.MBData.Set.Data.IsPowerOn = PSMReg.IsPowerOn;
 
-		// Zarządzanie włączaniem stabilizatora
+		// Regulator power state management
 		if (MBCommController.MBData.Get.Data.PowerState != PSMS_IDLE)
 		{
-			// Zmiana stanu zasilania
 			if (MBCommController.MBData.Get.Data.PowerState == PSMS_OFF)
 			{
 				//Regulator_TurnOn(false);
@@ -149,7 +120,7 @@ void RegulatorTask(void)
 			MBCommController.MBData.Get.Data.PowerState = PSMS_IDLE;
 		}
 	
-		// Regulacja napięcia i natężenia prądu
+		// Voltage and current regulation
 		Regulator_Handler();
 		MBCommController.MBData.Set.Data.IsOvercurrent = PSMReg.IsOvercurrent;
 		MBCommController.MBData.Set.Data.IsOverheat = PSMReg.IsOverheat;
@@ -157,14 +128,8 @@ void RegulatorTask(void)
 }
 
 /*----------------------------------------------------------------------------*/
-/**
- * @brief    Zadanie wymiany danych z płytą główną
- * @param    Brak
- * @retval   Brak
- */
 void CtrlTask(void)
 {
-	// Timer zadania
 	static uint8_t timer = MB_TASK_TIME;
 	
 	if (!(--timer))
@@ -176,14 +141,9 @@ void CtrlTask(void)
 }
 
 /*----------------------------------------------------------------------------*/
-/**
- * @brief    Inicjalizacja zadań
- * @param    Brak
- * @retval   Brak
- */
 void InitTasks(void)
 {
-	Regulator_TurnOnOff(false);				// Domyślne wyłączanie stabilizatora
+	Regulator_TurnOnOff(false);
 }
 
-/******************* (C) COPYRIGHT 2010 HENIUS *************** KONIEC PLIKU ***/
+/******************* (C) COPYRIGHT 2010 HENIUS *************** END OF FILE ****/

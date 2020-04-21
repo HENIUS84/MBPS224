@@ -4,15 +4,15 @@
 * @author   HENIUS (Paweł Witak)
 * @version  1.1.2
 * @date     03-05-2013
-* @brief    Obsługa menu
+* @brief    Menu implementation
 ********************************************************************************
 *
 * <h2><center>COPYRIGHT 2013 HENIUS</center></h2>
 */
 
-/* Sekcja include ------------------------------------------------------------*/
+/* Include section -----------------------------------------------------------*/
 
-// --->Pliki systemowe
+// --->System files
 
 #include <stdio.h>
 #include <avr/pgmspace.h>
@@ -20,7 +20,7 @@
 #include <stdarg.h>
 #include <math.h>
 
-// --->Pliki użytkownika
+// --->User files
 
 #include "Menu.h"
 #include "main.h"
@@ -40,15 +40,15 @@
 #include "SoundLib.h"
 #include "PSDataService.h"
 
-/* Sekcja zmiennych ----------------------------------------------------------*/
+/* Variable section ----------------------------------------------------------*/
 
-/*! Aktualny ekran */
-EMenuScreen_t CurrentScreen = MS_START;
-EMenuScreen_t CurrentMenuName;		/*!< Aktualna nazwa ekrau */
-MenuKeyState_t CurrentMenuKeyState;	/*!< Aktalny stan przycisków menu */
-uint8_t StringBuff[100];			/*!< Tablica na dany napis */
-/*!< Tablica ostatnich wartości */
-uint32_t LastValues[] =
+/*! Current screen */
+static EMenuScreen_t CurrentScreen = MS_START;
+static EMenuScreen_t CurrentMenuName;		/*!< Current screen name*/
+static MenuKeyState_t CurrentMenuKeyState;	/*!< Current menu key state */
+static uint8_t StringBuff[100];				/*!<  Menu text buffer */
+/*! Table of las values */
+static uint32_t LastValues[] =
 {
     INT32_MAX,
     INT32_MAX,
@@ -57,14 +57,15 @@ uint32_t LastValues[] =
 	INT32_MAX,
 	INT32_MAX
 };
-bool IsAdvancedMode;				/*!< Flaga oznaczająca tryb zaawansowany */
-int8_t ScreenIdx = 0;				/*!< Indeks nazwy ekranu */
-int8_t EditIndex;					/*!< Indeks edytowanego pola */
-volatile bool IsCursorToggled;		/*<! Flaga oznaczająca żądanie migotania 
-                                         kursora */
-bool IsEditingPending = false;		/*!< Flaga oznaczająca edytowanie w toku */
-/*! Lista nazw ekranów menu głównego */
-const Screen_t MenuScreens[] =
+bool IsAdvancedMode;				/*!< Advanced mode flag */
+static int8_t ScreenIdx = 0;		/*!< Index of screen name */
+static int8_t EditIndex;			/*!< Index of edited field */
+/*! Flag of blinking cursor request */
+static volatile bool IsCursorToggled;
+/*! Flag of field edition in progress */
+static bool IsEditingPending = false;
+/*! List of screen names for main menu */
+static const Screen_t MenuScreens[] =
 {
     {
         .Type         = MS_SCREEN_SET_VALUES,
@@ -107,7 +108,8 @@ const Screen_t MenuScreens[] =
         .AdvancedMode = false
     }
 };
-const Screen_t SettingsScreens[] =
+/*! List of screen names for settings */
+static const Screen_t SettingsScreens[] =
 {
     {
         .Type         = MS_SCREEN_GENERAL_SETTINGS,
@@ -120,8 +122,8 @@ const Screen_t SettingsScreens[] =
         .AdvancedMode = false
     }
 };
-/*! Lista nazw ekranów ustawień ogólnych */
-const Screen_t GeneralSettingsScreens[] =
+/*! List of screen names for general settings */
+static const Screen_t GeneralSettingsScreens[] =
 {
     {
         .Type         = MS_SCREEN_SOUND,
@@ -139,8 +141,8 @@ const Screen_t GeneralSettingsScreens[] =
         .AdvancedMode = false
     }
 };
-/*! Lista nazw ekranów ustawień zasilacza */
-const Screen_t PSSettingsScreens[] =
+/*! List of screen names for PS settings */
+static const Screen_t PSSettingsScreens[] =
 {
     {
         .Type         = MS_SCREEN_SS1_SETTINGS,
@@ -168,8 +170,8 @@ const Screen_t PSSettingsScreens[] =
 		.AdvancedMode = false
 	}	
 };
-/*! Lista nazw ekranów informacji o zasilaczu */
-const Screen_t AboutScreens[] =
+/*! List of screen names for about screen */
+static const Screen_t AboutScreens[] =
 {
     {
         .Type         = MS_SCREEN_FIRMWARE,
@@ -192,14 +194,15 @@ const Screen_t AboutScreens[] =
         .AdvancedMode = true
     }
 };
-const Screen_t *Screens = MenuScreens;	/*!< Wskaźnik do tabeli ekranów */
-/*! Liczba wszystkich ekranów */
-uint8_t AmountOfScreens = sizeof(MenuScreens) / sizeof(Screen_t);
+/*! Pointer to the screen table */
+static const Screen_t *Screens = MenuScreens;
+/*! Number of all screens */
+static uint8_t AmountOfScreens = sizeof(MenuScreens) / sizeof(Screen_t);
 
-// --->Sekcja komponentów graficznych
+// --->Graphic components section
 
-/*! Etykieta ustawień */
-const TextBlock_t PROGMEM PART_Settings =
+/*! Settings label */
+static const TextBlock_t PROGMEM PART_Settings =
 {
     .Location                = { .X = 0, .Y = -1 },
     .Font                    = &MicrosoftSansSerif7,
@@ -211,8 +214,8 @@ const TextBlock_t PROGMEM PART_Settings =
     .HorizontalAlignment     = HA_CENTER, .VerticalAlignment = VA_TOP,
     .BackgroundColor         = SC_BLACK
 };
-/*! Etykieta kanału #1 */
-const TextBlock_t PROGMEM PART_Channel1 =
+/*! Channel #1 label */
+static const TextBlock_t PROGMEM PART_Channel1 =
 {
     .Location                = { .X = 0, .Y = -1 },
     .Font                    = &MicrosoftSansSerif7,
@@ -224,8 +227,8 @@ const TextBlock_t PROGMEM PART_Channel1 =
     .HorizontalAlignment     = HA_CENTER, .VerticalAlignment = VA_TOP,
     .BackgroundColor         = SC_BLACK
 };
-/*! Etykieta kanału #2 */
-const TextBlock_t PROGMEM PART_Channel2 =
+/*! Channel #2 label */
+static const TextBlock_t PROGMEM PART_Channel2 =
 {
     .Location                = { .X = 65, .Y = -1 },
     .Font                    = &MicrosoftSansSerif7,
@@ -237,36 +240,36 @@ const TextBlock_t PROGMEM PART_Channel2 =
     .HorizontalAlignment     = HA_CENTER, .VerticalAlignment = VA_TOP,
     .BackgroundColor         = SC_BLACK
 };
-/*! Linia dolnego separatora #1 */
-const Line_t PROGMEM PART_LowerSeparator1 =
+/*! Bottom separator line #1 */
+static const Line_t PROGMEM PART_LowerSeparator1 =
 {
     .From  = { .X = 0, .Y = 50 },
     .To    = { .X = 127, .Y = 50 },
     .Color = SC_BLACK
 };
-/*! Linia dolnego separatora #2 */
-const Line_t PROGMEM PART_LowerSeparator2 =
+/*! Bottom separator line #2 */
+static const Line_t PROGMEM PART_LowerSeparator2 =
 {
     .From  = { .X = 0, .Y = 36 },
     .To    = { .X = 127, .Y = 36 },
     .Color = SC_BLACK
 };
-/*! Linia separatora kanałów #1 w głównym ekranie */
-const Line_t PROGMEM PART_ChannelsSeparator1 =
+/*! Channel #1 separator line in main menu */
+static const Line_t PROGMEM PART_ChannelsSeparator1 =
 {
     .From  = { .X = 62, .Y = 11 },
     .To    = { .X = 62, .Y = 50 },
     .Color = SC_BLACK
 };
-/*! Linia separatora kanałów #2 w głównym ekranie */
-const Line_t PROGMEM PART_ChannelsSeparator2 =
+/*! Channel #2 separator line in main menu */
+static const Line_t PROGMEM PART_ChannelsSeparator2 =
 {
     .From  = { .X = 65, .Y = 11 },
     .To    = { .X = 65, .Y = 50 },
     .Color = SC_BLACK
 };
-/*! Data i wersja kompilacji */
-const TextBlock_t PROGMEM PART_Firmware =
+/*! Date and version of build */
+static const TextBlock_t PROGMEM PART_Firmware =
 {
     .Location                = { .X = 0, .Y = 51 },
     .Font                    = &MicrosoftSansSerif7,
@@ -279,8 +282,8 @@ const TextBlock_t PROGMEM PART_Firmware =
     .HorizontalAlignment     = HA_CENTER, .VerticalAlignment = VA_TOP,
     .BackgroundColor         = SC_WHITE
 };
-/*! Nazwa aktualnie wyświetlanego ekranu */
-TextBlock_t PART_ScreenName =
+/*! Name of current displayed screen */
+static TextBlock_t PART_ScreenName =
 {
     .Location                = { .X = 7, .Y = 53 },
     .TextOffset              = { .X = 0, .Y = 0 },
@@ -294,8 +297,8 @@ TextBlock_t PART_ScreenName =
     .HorizontalAlignment     = HA_CENTER, .VerticalAlignment = VA_BOTTOM,
     .BackgroundColor         = SC_WHITE
 };
-/*! Znak nawigacyjny '<' */
-const TextBlock_t PROGMEM PART_LeftNavigator =
+/*! Navigation character '<' */
+static const TextBlock_t PROGMEM PART_LeftNavigator =
 {
     .Location                = { .X = 0, .Y = 54 },
     .TextOffset              = { .X = 0, .Y = -1 },
@@ -309,8 +312,8 @@ const TextBlock_t PROGMEM PART_LeftNavigator =
     .HorizontalAlignment     = HA_LEFT, .VerticalAlignment = VA_CENTER,
     .BackgroundColor         = SC_WHITE
 };
-/*! Znak nawigacyjny górny */
-TextBlock_t PART_UpNavigator1 =
+/*! Top navigation character #1 */
+static TextBlock_t PART_UpNavigator1 =
 {
     .Location                = { .X = 60, .Y = 17 },
     .TextOffset              = { .X = 0, .Y = -2 },
@@ -323,8 +326,8 @@ TextBlock_t PART_UpNavigator1 =
     .HorizontalAlignment     = HA_LEFT, .VerticalAlignment = VA_CENTER,
     .BackgroundColor         = SC_WHITE
 };
-/*! Znak nawigacyjny górny #2 */
-const TextBlock_t PROGMEM PART_UpNavigator2 =
+/*! Top navigation character #2 */
+static const TextBlock_t PROGMEM PART_UpNavigator2 =
 {
     .Location                = { .X = 60, .Y = 1 },
     .TextOffset              = { .X = 0, .Y = -2 },
@@ -337,8 +340,8 @@ const TextBlock_t PROGMEM PART_UpNavigator2 =
     .HorizontalAlignment     = HA_LEFT, .VerticalAlignment = VA_CENTER,
     .BackgroundColor         = SC_WHITE
 };
-/*! Znak nawigacyjny dolny */
-TextBlock_t PART_DownNavigator =
+/*! Bottom navigation character */
+static TextBlock_t PART_DownNavigator =
 {
     .Location                = { .X = 60, .Y = 40 },
     .TextOffset              = { .X = 0, .Y = -2 },
@@ -351,8 +354,8 @@ TextBlock_t PART_DownNavigator =
     .HorizontalAlignment     = HA_LEFT, .VerticalAlignment = VA_CENTER,
     .BackgroundColor         = SC_WHITE
 };
-/*! Znak nawigacyjny '>' */
-const TextBlock_t PROGMEM PART_RightNavigator =
+/*! Navigation character '>' */
+static const TextBlock_t PROGMEM PART_RightNavigator =
 {
     .Location                = { .X = 123, .Y = 54 },
     .TextOffset              = { .X = 0, .Y = -1 },
@@ -366,8 +369,8 @@ const TextBlock_t PROGMEM PART_RightNavigator =
     .HorizontalAlignment     = HA_LEFT, .VerticalAlignment = VA_CENTER,
     .BackgroundColor         = SC_WHITE
 };
-/*! Informacja o prawach autorskich */
-const TextBlock_t PROGMEM PART_Rights =
+/*! Copyrights */
+static const TextBlock_t PROGMEM PART_Rights =
 {
     .Location                = { .X = 0, .Y = 37 },
     .Font                    = &MicrosoftSansSerif7,
@@ -380,8 +383,8 @@ const TextBlock_t PROGMEM PART_Rights =
     .HorizontalAlignment     = HA_CENTER, .VerticalAlignment = VA_TOP,
     .BackgroundColor         = SC_WHITE
 };
-/*! Wartość większa kanału #1 */
-TextBlock_t PART_Ch1BiggerValue =
+/*! Higher value of channel #1 */
+static TextBlock_t PART_Ch1BiggerValue =
 {
     .Location                = { .X = 2, .Y = 17 },
     .TextOffset              = { .X = 0, .Y = -4 },
@@ -395,8 +398,8 @@ TextBlock_t PART_Ch1BiggerValue =
     .HorizontalAlignment     = HA_LEFT, .VerticalAlignment = VA_TOP,
     .BackgroundColor         = SC_WHITE
 };
-/*! Wartość mniejsza kanału #1 */
-TextBlock_t PART_Ch1LowerValue =
+/*! Lower value of channel #1 */
+static TextBlock_t PART_Ch1LowerValue =
 {
     .Location                = { .X = 2, .Y = 36 },
     .TextOffset              = { .X = 0, .Y = -4 },
@@ -410,8 +413,8 @@ TextBlock_t PART_Ch1LowerValue =
     .HorizontalAlignment     = HA_LEFT, .VerticalAlignment = VA_TOP,
     .BackgroundColor         = SC_WHITE
 };
-/*! Jednostka większa kanału #1 */
-const TextBlock_t PROGMEM PART_Ch1BiggerUnit =
+/*! Higher unit of channel #1 */
+static const TextBlock_t PROGMEM PART_Ch1BiggerUnit =
 {
     .Location                = { .X = 43, .Y = 21 },
     .TextOffset              = { .X = 0, .Y = -1 },
@@ -425,8 +428,8 @@ const TextBlock_t PROGMEM PART_Ch1BiggerUnit =
     .HorizontalAlignment     = HA_LEFT, .VerticalAlignment = VA_CENTER,
     .BackgroundColor         = SC_WHITE
 };
-/*! Jednostka mniejsza kanału #1 */
-const TextBlock_t PROGMEM PART_Ch1LowerUnit =
+/*! Lower unit of channel #1 */
+static const TextBlock_t PROGMEM PART_Ch1LowerUnit =
 {
     .Location                = { .X = 43, .Y = 38 },
     .TextOffset              = { .X = 0, .Y = -1 },
@@ -440,8 +443,8 @@ const TextBlock_t PROGMEM PART_Ch1LowerUnit =
     .HorizontalAlignment     = HA_LEFT, .VerticalAlignment = VA_CENTER,
     .BackgroundColor         = SC_WHITE
 };
-/*! Wartość większa kanału #2 */
-TextBlock_t PART_Ch2BiggerValue =
+/*! Higher value of channel #2 */
+static TextBlock_t PART_Ch2BiggerValue =
 {
     .Location                = { .X = 68, .Y = 17 },
     .TextOffset              = { .X = 0, .Y = -4 },
@@ -455,8 +458,8 @@ TextBlock_t PART_Ch2BiggerValue =
     .HorizontalAlignment     = HA_LEFT, .VerticalAlignment = VA_TOP,
     .BackgroundColor         = SC_WHITE
 };
-/*! Wartość mniejsza kanału #2 */
-TextBlock_t PART_Ch2LowerValue =
+/*! Lower value of channel #2 */
+static TextBlock_t PART_Ch2LowerValue =
 {
     .Location                = { .X = 68, .Y = 36 },
     .TextOffset              = { .X = 0, .Y = -4 },
@@ -470,8 +473,8 @@ TextBlock_t PART_Ch2LowerValue =
     .HorizontalAlignment     = HA_LEFT, .VerticalAlignment = VA_TOP,
     .BackgroundColor         = SC_WHITE
 };
-/*! Jednostka większa kanału #2 */
-const TextBlock_t PROGMEM PART_Ch2BiggerUnit =
+/*! Higher unit of channel #2 */
+static const TextBlock_t PROGMEM PART_Ch2BiggerUnit =
 {
     .Location                = { .X = 109, .Y = 21 },
     .TextOffset              = { .X = 0, .Y = -1 },
@@ -484,8 +487,8 @@ const TextBlock_t PROGMEM PART_Ch2BiggerUnit =
     .HorizontalAlignment     = HA_LEFT, .VerticalAlignment = VA_CENTER,
     .BackgroundColor         = SC_WHITE
 };
-/*! Jednostka mniejsza kanału #2 */
-const TextBlock_t PROGMEM PART_Ch2LowerUnit =
+/*! Lower unit of channel #2 */
+static const TextBlock_t PROGMEM PART_Ch2LowerUnit =
 {
     .Location                = { .X = 109, .Y = 38 },
     .TextOffset              = { .X = 0, .Y = -1 },
@@ -498,8 +501,8 @@ const TextBlock_t PROGMEM PART_Ch2LowerUnit =
     .HorizontalAlignment     = HA_LEFT, .VerticalAlignment = VA_CENTER,
     .BackgroundColor         = SC_WHITE
 };
-/*! Pierwsza linia ekranu 'O komunikacji' */
-const TextBlock_t PROGMEM PART_CommInfoLine_1 =
+/*! First line of screen 'About communication' */
+static const TextBlock_t PROGMEM PART_CommInfoLine_1 =
 {
     .Location                = { .X = 0, .Y = 13 },
     .TextOffset              = { .X = 0, .Y = -1 },
@@ -512,8 +515,8 @@ const TextBlock_t PROGMEM PART_CommInfoLine_1 =
     .HorizontalAlignment     = HA_CENTER, .VerticalAlignment = VA_CENTER,
     .BackgroundColor         = SC_WHITE
 };
-/*! Druga linia (pierwsza kolumna) ekranu 'O komunikacji' */
-const TextBlock_t PROGMEM PART_CommInfoLine_2_0 =
+/*! Second line of screen 'About communication' */
+static const TextBlock_t PROGMEM PART_CommInfoLine_2_0 =
 {
     .Location                = { .X = 0, .Y = 21 },
     .TextOffset              = { .X = 0, .Y = -1 },
@@ -526,8 +529,8 @@ const TextBlock_t PROGMEM PART_CommInfoLine_2_0 =
     .HorizontalAlignment     = HA_LEFT, .VerticalAlignment = VA_CENTER,
     .BackgroundColor         = SC_WHITE
 };
-/*! Druga linia (druga kolumna) ekranu 'O komunikacji' */
-const TextBlock_t PROGMEM PART_CommInfoLine_2_1 =
+/*! Second line (second column) of screen 'About communication' */
+static const TextBlock_t PROGMEM PART_CommInfoLine_2_1 =
 {
     .Location                = { .X = 64, .Y = 21 },
     .TextOffset              = { .X = 0, .Y = -1 },
@@ -540,8 +543,8 @@ const TextBlock_t PROGMEM PART_CommInfoLine_2_1 =
     .HorizontalAlignment     = HA_LEFT, .VerticalAlignment = VA_CENTER,
     .BackgroundColor         = SC_WHITE
 };
-/*! Trzecia linia ekranu 'O komunikacji' */
-const TextBlock_t PROGMEM PART_CommInfoLine_3 =
+/*! Third line of screen 'About communication' */
+static const TextBlock_t PROGMEM PART_CommInfoLine_3 =
 {
     .Location                = { .X = 0, .Y = 32 },
     .TextOffset              = { .X = 0, .Y = -1 },
@@ -554,8 +557,8 @@ const TextBlock_t PROGMEM PART_CommInfoLine_3 =
     .HorizontalAlignment     = HA_CENTER, .VerticalAlignment = VA_CENTER,
     .BackgroundColor         = SC_WHITE
 };
-/*! Trzecia linia (pierwsza kolumna) ekranu 'O komunikacji' */
-const TextBlock_t PROGMEM PART_CommInfoLine_3_0 =
+/*! Third line (first column) of screen 'About communication' */
+static const TextBlock_t PROGMEM PART_CommInfoLine_3_0 =
 {
     .Location                = { .X = 0, .Y = 40 },
     .TextOffset              = { .X = 0, .Y = -1 },
@@ -568,7 +571,8 @@ const TextBlock_t PROGMEM PART_CommInfoLine_3_0 =
     .HorizontalAlignment     = HA_LEFT, .VerticalAlignment = VA_CENTER,
     .BackgroundColor         = SC_WHITE
 };
-const TextBlock_t PROGMEM PART_CommInfoLine_3_1 =
+/*! Third line (second column) of screen 'About communication' */
+static const TextBlock_t PROGMEM PART_CommInfoLine_3_1 =
 {
     .Location                = { .X = 64, .Y = 40 },
     .TextOffset              = { .X = 0, .Y = -1 },
@@ -581,8 +585,8 @@ const TextBlock_t PROGMEM PART_CommInfoLine_3_1 =
     .HorizontalAlignment     = HA_LEFT, .VerticalAlignment = VA_CENTER,
     .BackgroundColor         = SC_WHITE
 };
-/*! Informacja o wersji oprogramowania */
-const TextBlock_t PROGMEM PART_FirmwareVersion =
+/*! Information about firmware version */
+static const TextBlock_t PROGMEM PART_FirmwareVersion =
 {
     .Location                = { .X = 0, .Y = 21 },
     .TextOffset              = { .X = 0, .Y = -1 },
@@ -595,8 +599,8 @@ const TextBlock_t PROGMEM PART_FirmwareVersion =
     .HorizontalAlignment     = HA_LEFT, .VerticalAlignment = VA_CENTER,
     .BackgroundColor         = SC_WHITE
 };
-/*! Informacja o dacie kompilacji */
-const TextBlock_t PROGMEM PART_BuildDate =
+/*! Information about build date */
+static const TextBlock_t PROGMEM PART_BuildDate =
 {
     .Location                = { .X = 0, .Y = 32 },
     .TextOffset              = { .X = 0, .Y = -1 },
@@ -609,8 +613,8 @@ const TextBlock_t PROGMEM PART_BuildDate =
     .HorizontalAlignment     = HA_LEFT, .VerticalAlignment = VA_CENTER,
     .BackgroundColor         = SC_WHITE
 };
-/*! Wartość środkowa */
-const TextBlock_t PROGMEM PART_CenterValue =
+/*! Center value */
+static const TextBlock_t PROGMEM PART_CenterValue =
 {
     .Location                = { .X = 49, .Y = 37 },
     .TextOffset              = { .X = 0, .Y = -1 },
@@ -623,8 +627,8 @@ const TextBlock_t PROGMEM PART_CenterValue =
     .HorizontalAlignment     = HA_LEFT, .VerticalAlignment = VA_CENTER,
     .BackgroundColor         = SC_WHITE
 };
-/*! Jednostka środkowa */
-const TextBlock_t PROGMEM PART_CenterUnit =
+/*! Center unit */
+static const TextBlock_t PROGMEM PART_CenterUnit =
 {
     .Location                = { .X = 76, .Y = 41 },
     .TextOffset              = { .X = 0, .Y = -1 },
@@ -637,8 +641,8 @@ const TextBlock_t PROGMEM PART_CenterUnit =
     .HorizontalAlignment     = HA_LEFT, .VerticalAlignment = VA_CENTER,
     .BackgroundColor         = SC_WHITE
 };
-/*! Etykieta środkowa */
-const TextBlock_t PROGMEM PART_CenterLabel =
+/*! Center label */
+static const TextBlock_t PROGMEM PART_CenterLabel =
 {
     .Location                = { .X = 23, .Y = 38 },
     .TextOffset              = { .X = 0, .Y = 0 },
@@ -651,8 +655,8 @@ const TextBlock_t PROGMEM PART_CenterLabel =
     .HorizontalAlignment     = HA_LEFT, .VerticalAlignment = VA_CENTER,
     .BackgroundColor         = SC_WHITE
 };
-/*! Wartość środkowa ustawień #1 */
-const TextBlock_t PROGMEM PART_SettingsCenterValue1 =
+/*! Center value of settings #1 */
+static const TextBlock_t PROGMEM PART_SettingsCenterValue1 =
 {
     .Location                = { .X = 0, .Y = 25 },
     .TextOffset              = { .X = 0, .Y = -1 },
@@ -665,8 +669,8 @@ const TextBlock_t PROGMEM PART_SettingsCenterValue1 =
     .HorizontalAlignment     = HA_CENTER, .VerticalAlignment = VA_CENTER,
     .BackgroundColor         = SC_WHITE
 };
-/*! Wartość środkowa ustawień #2 */
-const TextBlock_t PROGMEM PART_SettingsCenterValue2 =
+/*! Center value of settings #2 */
+static const TextBlock_t PROGMEM PART_SettingsCenterValue2 =
 {
 	.Location                = { .X = 52, .Y = 25 },
 	.TextOffset              = { .X = 1, .Y = -1 },
@@ -679,8 +683,8 @@ const TextBlock_t PROGMEM PART_SettingsCenterValue2 =
 	.HorizontalAlignment     = HA_CENTER, .VerticalAlignment = VA_CENTER,
 	.BackgroundColor         = SC_WHITE
 };
-/*! Jednostka środkowa ustawień */
-const TextBlock_t PROGMEM PART_SettingsCenterUnit =
+/*! Center unit of settings */
+static const TextBlock_t PROGMEM PART_SettingsCenterUnit =
 {
 	.Location                = { .X = 75, .Y = 29 },
 	.TextOffset              = { .X = 0, .Y = -1 },
@@ -693,8 +697,8 @@ const TextBlock_t PROGMEM PART_SettingsCenterUnit =
 	.HorizontalAlignment     = HA_LEFT, .VerticalAlignment = VA_CENTER,
 	.BackgroundColor         = SC_WHITE
 };
-/*! Pasek postępu ustawień */
-ProgressBar_t PART_SettingsBar =
+/*! Settings progress bar */
+static ProgressBar_t PART_SettingsBar =
 {
     .Location                = { .X = 32, .Y = 25 },
     .Size                    = { .Width = 64, .Height = 12 },
@@ -708,8 +712,8 @@ ProgressBar_t PART_SettingsBar =
     .Maximum                 = 10,
     .IsTransparentBackground = false
 };
-/*! Wartość paska ustawień */
-const TextBlock_t PROGMEM PART_SettingsValue =
+/*! Value of settings bar */
+static const TextBlock_t PROGMEM PART_SettingsValue =
 {
 	.Location                = { .X = 102, .Y = 24 },
 	.Font                    = &MicrosoftSansSerif7,
@@ -722,219 +726,217 @@ const TextBlock_t PROGMEM PART_SettingsValue =
 	.BackgroundColor         = SC_WHITE
 };
 
-// --->Sekcja napisów
+// --->Caption section
 
-/*! Etykieta kanału #1 (angielski) */
+/*! Caption of channel #1 (english) */
 const uint8_t PROGMEM Channel1_Eng[] = "CH1%s%s%s%s%s";
-/*! Etykieta kanału #1 (polski) */
+/*! Caption of channel #1 (polish) */
 const uint8_t PROGMEM Channel1_Pol[] = "K1%s%s%s%s%s";
-/*! Etykieta kanału #2 (angielski) */
+/*! Caption of channel #2 (english) */
 const uint8_t PROGMEM Channel2_Eng[] = "CH2%s%s%s%s%s";
-/*! Etykieta kanału #2 (polski) */
+/*! Caption of channel #2 (polish) */
 const uint8_t PROGMEM Channel2_Pol[] = "K2%s%s%s%s%s";
-/*! Informacje o kompilacji */
+/*! Build info */
 const uint8_t PROGMEM FirmwareVer[] = "FW: %s";
-/*! Informacje o prawach autorskich */
+/*! Copyrights info */
 const uint8_t PROGMEM RightsInfo[]  = "(C) %d HENIUS";
-/*! Nazwa ekranu - wartości zadane (angielski) */
+/*! Name of screen - set values (english) */
 const uint8_t PROGMEM SetValues_Eng[] = "SET VALUES";
-/*! Nazwa ekranu - wartości zadane (polski) */
+/*! Name of screen -set values (polish) */
 const uint8_t PROGMEM SetValues_Pol[] = "WART. ZADANE";
-/*! Nazwa ekranu - wartości zmierzone (polski) */
+/*! Name of screen - measured values (polish) */
 const uint8_t PROGMEM MeasValues_Eng[] = "MEASURED VALUES";
-/*! Nazwa ekranu - wartości zmierzone (polski) */
+/*! Name of screen - measured values (polish) */
 const uint8_t PROGMEM MeasValues_Pol[] = "WART. ZMIERZONE";
-/*! Nazwa ekranu - temperatury (angielski) */
+/*! Name of screen - temperatures (english) */
 const uint8_t PROGMEM Temperatures_Eng[] = "TEMPERATURES";
-/*! Nazwa ekranu - temperatury (polski) */
+/*! Name of screen - temperatures (polish) */
 const uint8_t PROGMEM Temperatures_Pol[] = "TEMPERATURY";
-/*! Nazwa ekranu - moc/rezystancja (angielski) */
+/*! Name of screen - power/resistance (english) */
 const uint8_t PROGMEM PowerRes_Eng[] = "POWER/RESIST.";
-/*! Nazwa ekranu - moc/rezystancja (polski) */
+/*! Name of screen - power/resistance (polish) */
 const uint8_t PROGMEM PowerRes_Pol[] = "MOC/REZYST.";
-/*! Etykieta temperatury płyty głównej (angielski) */
+/*! Caption of main board temperature (english) */
 const uint8_t PROGMEM MBTemp_Eng[] = "MB:";
-/*! Etykieta temperatury płyty głównej (polski) */
+/*! Caption of main board temperature (polish) */
 const uint8_t PROGMEM MBTemp_Pol[] = "PG:";
-/*! Nazwa ekranu - ustawienia (angielski) */
+/*! Name of screen - settings (english) */
 const uint8_t PROGMEM Settings_Eng[] = "SETTINGS";
-/*! Nazwa ekranu - ustawienia (polski) */
+/*! Name of screen - settings (polish) */
 const uint8_t PROGMEM Settings_Pol[] = "USTAWIENIA";
-/*! Pusty łańcuch */
+/*! Empty string */
 uint8_t *EmptyString = (uint8_t*)"";
-/*! Lewy nawigator */
+/*! Left navigator */
 const uint8_t PROGMEM LeftNavigator[] = "<";
-/*! Prawy nawigator */
+/*! Right navigator */
 const uint8_t PROGMEM RightNavigator[] = ">";
-/*! Wartość zmienno-przecinkowa 1 */
+/*! Float value 1 */
 const uint8_t PROGMEM FloatValue1[] = "%d,%d";
-/*! Wartość zmienno-przecinkowa 2 */
+/*! Float value 2 */
 const uint8_t PROGMEM FloatValue2[] = "%d,%03d";
-/*! Wartość zmienno-przecinkowa 3 */
+/*! Float value 3 */
 const uint8_t PROGMEM FloatValue3[] = "%d,%02d";
-/*! Wartość całkowita */
+/*! Integer value */
 const uint8_t PROGMEM IntValue[] = "%d";
-/*! Jednostka napięcia */
+/*! Voltage unit */
 const uint8_t PROGMEM VoltageUnit[] = "V";
-/*! Jednostka temperatury */
+/*! Temperature unit*/
 const uint8_t PROGMEM TemperatureUnit[] = PL_DEGREE "C";
-/*! Jednostka natężenia prądu */
+/*! Current unit */
 const uint8_t PROGMEM CurrentUnit[] = "mA";
-/*! Jednostka małej mocy */
+/*! Unit of low power */
 const uint8_t PROGMEM LowPowerUnit[] = "mW";
-/*! Jednostka dużej mocy */
+/*! Unit of high power */
 const uint8_t PROGMEM HighPowerUnit[] = "W";
-/*! Jednostka niskiej rezystancji */
+/*! Unit of low resistance */
 const uint8_t PROGMEM LowResistanceUnit[] = PL_OHM;
-/*! Jednostka średniej rezystancji */
+/*! JUnit of medium resistance */
 const uint8_t PROGMEM MediumResistanceUnit[] = "k" PL_OHM;
-/*! Jednostka dużej rezystancji */
+/*! Unit if high resistance */
 const uint8_t PROGMEM HighResistanceUnit[] = "M" PL_OHM;
-/*! Symbol nieskończoności */
+/*! Infinity symbol */
 const uint8_t PROGMEM InfinitySymbol[] ="OL";
-/*! Ustawienia dźwięku (angielski) */
+/*! Audio settings (english) */
 const uint8_t PROGMEM Sound_Eng[] = "SOUND";
-/*! Ustawienia dźwięku (polski) */
+/*! Audio settings (polish) */
 const uint8_t PROGMEM Sound_Pol[] = "D" PL_X "WI" PL_E "K";
-/*! Ustawienia wyświetlacza (angielski) */
+/*! Display settings (english) */
 const uint8_t PROGMEM Display_Eng[] = "BRIGHTNESS";
-/*! Ustawienia wyświetlacza (polski) */
+/*! Display settings (polish) */
 const uint8_t PROGMEM Display_Pol[] = "JASNO" PL_S PL_C;
-/*! Ustawienia języka (angielski) */
+/*! Language settings (english) */
 const uint8_t PROGMEM Language_Eng[] = "LANGUAGE";
-/*! Ustawienia języka (polski) */
+/*! Language settings (polish) */
 const uint8_t PROGMEM Language_Pol[] = "J" PL_E "ZYK";
-/*! Język menu - angielski */
+/*! Menu language - english */
 const uint8_t PROGMEM MenuLanguage_Eng[] = "ENGLISH";
-/*! Język menu - polski */
-const uint8_t PROGMEM MenuLanguage_Pol[] = "POLSKI";
-/*! Wartości zadane PWM - angielski */
+/*! Menu language - polish */
+const uint8_t PROGMEM MenuLanguage_Pol[] = "polish";
+/*! Set PWM values - english */
 const uint8_t PROGMEM SetPWM_Eng[] = "SET VOLTAGE PWM";
-/*! Wartości zadane PWM - polski */
+/*! Set PWM values - polish */
 const uint8_t PROGMEM SetPWM_Pol[] = "ZADANE PWM NAP.";
-/*! Wartości zmierzone ADC - angielski */
+/*! Measured ADC values - english */
 const uint8_t PROGMEM ADCvalues_Eng[] = "ADC VALUES";
-/*! Wartości zmierzone ADC - polski */
+/*! Measured ADC values - polish */
 const uint8_t PROGMEM ADCvalues_Pol[] = "WARTO" PL_S "CI ADC";
-/*! Jednostka PWM napięcia */
+/*! Unit of voltage PWM */
 const uint8_t PROGMEM PWMvoltageUnit[] = "U";
-/*! Jednostka PWM natężenia prądu */
+/*! Unit of current PWM */
 const uint8_t PROGMEM PWMcurrentUnit[] = "I";
-/*! Informacja o wyłączonym dźwięku - angielski */
+/*! Info about turned off sound - english */
 const uint8_t PROGMEM SoundOff_Eng[] = "SOUND OFF";
-/*! Informacja o wyłączonym dźwięku - polski */
+/*! Info about turned off sound - polish */
 const uint8_t PROGMEM SoundOff_Pol[] = "D" PL_X "WI" PL_E "K WY" PL_L ".";
-/*! Informacja o włączonym dźwięku - angielski */
+/*! Info about turned on sound - english */
 const uint8_t PROGMEM SoundOn_Eng[] = "SOUND ON";
-/*! Informacja o włączonym dźwięku - polski */
+/*! Info about turned on sound - polish */
 const uint8_t PROGMEM SoundOn_Pol[] =  "D" PL_X "WI" PL_E "K W" PL_L ".";
-/*! Znak przekroczenia natężenia prądu w kanale */
+/*! Sign of channel overcurrent */
 const uint8_t PROGMEM Overcurrent[] = "-";
-/*! Ustawienia ogólne - angielski */
+/*! General settings - english */
 const uint8_t PROGMEM GeneralSettings_Eng[] = "GENERAL";
-/*! Ustawienia ogólne - polski */
+/*! General settings - polish */
 const uint8_t PROGMEM GeneralSettings_Pol[] = "OG" PL_O "LNE";
-/*! Ustawienia zasilacza - angielski */
+/*! Powe supply settings - english */
 const uint8_t PROGMEM PSsettings_Eng[] = "POWER SUPPLY";
-/*! Ustawienia ogólne - polski */
+/*! General settings - polish */
 const uint8_t PROGMEM PSsettings_Pol[] = "ZASILACZ";
-/*! Ustawienia ogólne w górnej belce - angielski */
+/*! General settings at top panel - english */
 const uint8_t PROGMEM GeneralSettingsLabel_Eng[] = "GENERAL SETTINGS";
-/*! Ustawienia ogólne w górnej belce - polski */
+/*! General settings at top panel - polish */
 const uint8_t PROGMEM GeneralSettingsLabel_Pol[] = "USTAW. OG" PL_O "LNE";
-/*! Ustawienia łagodnego startu kanału #1 - angielski */
+/*! Soft start settings for channel #1 - english */
 const uint8_t PROGMEM SoftStart1_Eng[] = "SOFT-START CH1";
-/*! Ustawienia łagodnego startu kanału #1 - polski */
+/*! Soft start settings for channel #1 - polish */
 const uint8_t PROGMEM SoftStart1_Pol[] = PL_L "AGODNY START K1";
-/*! Ustawienia łagodnego startu kanału #2 - angielski */
+/*! Soft start settings for channel #2 - english */
 const uint8_t PROGMEM SoftStart2_Eng[] = "SOFT-START CH2";
-/*! Ustawienia łagodnego startu kanału #2 - polski */
+/*! Soft start settings for channel #2 - polish */
 const uint8_t PROGMEM SoftStart2_Pol[] = PL_L "AGODNY START K2";
-/*! Ustawienia zasilacza w górnej belce - angielski */
+/*! Power supply settings at top panel - english */
 const uint8_t PROGMEM PSsettingsLabel_Eng[] = "P.SUPPLY SETTINGS";
-/*! Ustawienia zasilacza w górnej belce - polski */
+/*! Power supply settings at top panel - polish */
 const uint8_t PROGMEM PSsettingsLabel_Pol[] = "USTAWIENIA ZAS.";
-/*! Format informacji o czasie łagodnego startu */
+/*! Soft start info format */
 const uint8_t PROGMEM SoftStartTimeUnit[] = "s";
-/*! Informacje o programie - angielski */
+/*! About info - english */
 const uint8_t PROGMEM About_Eng[] = "ABOUT MBPS224";
-/*! Informacje o programie - polski */
+/*! About info - polish */
 const uint8_t PROGMEM About_Pol[] = "O MBPS224";
-/*! Informacje o komunikacji z modułami - angielski */
+/*! Module communication information - english */
 const uint8_t PROGMEM Communication_Eng[] = "COMMUNICATION";
-/*! Informacje o komunikacji z modułami - polski */
+/*! Module communication information - polish */
 const uint8_t PROGMEM Communication_Pol[] = "KOMUNIKACJA";
-/*! Prędkość komunikacji - angielski */
+/*! Speed rate - english */
 const uint8_t PROGMEM DataRate_Eng[] = "DATA RATE [B/s]";
-/*! Prędkość komunikacji - polski */
+/*! Speed rate - polish */
 const uint8_t PROGMEM DataRate_Pol[] = "PR" PL_E "DKO" PL_S PL_C "[B/s]";
-/*! Rozmiar komunikatu - angielski */
+/*! Message size - english */
 const uint8_t PROGMEM MessageSize_Eng[] = "MESSAGE SIZE [B]";
-/*! Rozmiar komunikatu - polski */
+/*! Message size - polish */
 const uint8_t PROGMEM MessageSize_Pol[] = "ROZM. KOMUNIKATU [B]";
-/*! Informacja o danych odbieranych */
+/*! RX data information */
 const uint8_t PROGMEM RxData[] = "RX: %d";
-/*! Informacja o danych wysyłanych */
+/*! TX data information */
 const uint8_t PROGMEM TxData[] = "TX: %d";
-/*! Informacja o oprogramowaniu - angielski */
+/*! Firmware information - english */
 const uint8_t PROGMEM Firmware_Eng[] = "FIRMWARE";
-/*! Informacja o oprogramowaniu - polski */
+/*! Firmware information - polish */
 const uint8_t PROGMEM Firmware_Pol[] = "OPROGRAMOWANIE";
-/*! Informacja o oprogramowaniu modułu #1 - angielski */
+/*! Module #1 firmware information - english */
 const uint8_t PROGMEM Firmware1_Eng[] = "FIRMWARE 1";
-/*! Informacja o oprogramowaniu modułu #1 - polski */
+/*! Module #1 firmware information - polish */
 const uint8_t PROGMEM Firmware1_Pol[] = "OPROGRAMOWANIE 1";
-/*! Informacja o oprogramowaniu modułu #2 - angielski */
+/*! Module #2 firmware information - english */
 const uint8_t PROGMEM Firmware2_Eng[] = "FIRMWARE 2";
-/*! Informacja o oprogramowaniu modułu #2 - polski */
+/*! Module #2 firmware information - polish */
 const uint8_t PROGMEM Firmware2_Pol[] = "OPROGRAMOWANIE 2";
-/*! Informacja o wersji oprogramowania płyty głównej - angielski */
+/*! Main board firmware information - english */
 const uint8_t PROGMEM MBVersion_Eng[] = "VERSION: %s";
-/*! Informacja o wersji oprogramowania płyty głównej - polski */
+/*! Main board firmware information - polish */
 const uint8_t PROGMEM MBVersion_Pol[] = "WERSJA: %s";
-/*! Informacja o wersji oprogramowania modułu zasilacza - angielski */
+/*! Power supply module firmware information - english */
 const uint8_t PROGMEM PSMVersion_Eng[] = "VERSION: %d.%d.%d";
-/*! Informacja o wersji oprogramowania modułu zasilacza - polski */
+/*! Power supply module firmware information - polish */
 const uint8_t PROGMEM PSMVersion_Pol[] = "WERSJA: %d.%d.%d";
-/*! Informacja o dacie zbudowania oprogramowania (pełna wersja) - angielski */
+/*! Build date of firmware information (full version) - english */
 const uint8_t PROGMEM FullBuildDate_Eng[] = "DATE: %02d.%02d.%d  %02d:%02d";
-/*! Informacja o dacie zbudowania oprogramowania (pełna wersja) - polski */
+/*! Build date of firmware information (full version) - polish */
 const uint8_t PROGMEM FullBuildDate_Pol[] = "DATA: %02d.%02d.%d %02d:%02d";
-/*! Informacja o dacie zbudowania oprogramowania (krótka wersja) - angielski */
+/*! Build date of firmware information (short version) - english */
 const uint8_t PROGMEM ShortBuildDate_Eng[] = "DATE: %s";
-/*! Informacja o dacie zbudowania oprogramowania (krótka wersja) - polski */
+/*! Build date of firmware information (short version) - polish */
 const uint8_t PROGMEM ShortBuildDate_Pol[] = "DATA: %s";
-/*! Ustawienia maksymalnej temperatury - angielski */
+/*! Settings of max. temperature - english */
 const uint8_t PROGMEM MaxTemp_Eng[] = "MAX. TEMPERATURE";
-/*! Ustawienia maksymalnej temperatury - polski */
+/*! Settings of max. temperature - polish */
 const uint8_t PROGMEM MaxTemp_Pol[] = "MAKSYMALNA TEMP.";
-/*! Ustawienia histerezy temperatury - angielski */
+/*! Settings of temperature hysteresis - english */
 const uint8_t PROGMEM TempHysteresis_Eng[] = "TEMP. HISTERESIS";
-/*! Ustawienia histerezy temperatury - polski */
+/*! Settings of temperature hysteresis - polish */
 const uint8_t PROGMEM TempHysteresis_Pol[] = "HISTEREZA TEMP.";
-/*! Ustawienia zabezpieczenia temperaturowego - angielski */
+/*! Settings of temperature protection - english */
 const uint8_t PROGMEM TempProtection_Eng[] = "TEMP. PROTECTION";
-/*! Ustawienia zabezpieczenia temperaturowego - polski */
+/*! Settings of temperature protection - polish */
 const uint8_t PROGMEM TempProtection_Pol[] = "ZABEZP. TEMP.";
-/*! Informacja o włączonym zabezpieczeniu termicznym - angielski */
+/*! Information of enabled temperature protection - english */
 const uint8_t PROGMEM TempProtectionOn_Eng[] = "ON";
-/*! Informacja o włączonym zabezpieczeniu termicznym - polski */
+/*! Information of enabled temperature protection - polish */
 const uint8_t PROGMEM TempProtectionOn_Pol[] = "W" PL_L PL_A "CZONE";
-/*! Informacja o wyłączonym zabezpieczeniu termicznym - angielski */
+/*! Information of disabled temperature protection - english */
 const uint8_t PROGMEM TempProtectionOff_Eng[] = "OFF";
-/*! Informacja o wyłączonym zabezpieczeniu termicznym - polski */
+/*! Information of disabled temperature protection - polish */
 const uint8_t PROGMEM TempProtectionOff_Pol[] = "WY" PL_L PL_A "CZONE";
-/*! Łańcuch trybu symetrycznego zasilania */
- uint8_t SymModeStr[] = "S";		
- /*! Łańcuch przekroczenia natężenia prądu */
- uint8_t OvercurrentStr[] = "-";	
- uint8_t OverheatStr[] = "T";	/*!< Łańcuch przekroczenia temperatury */
- uint8_t NoConnStr[] = "?";		/*!< Łańcuch braku połączenia z modułem */
+ uint8_t SymModeStr[] = "S";	/*!< String of power symmetric mode */ 
+ uint8_t OvercurrentStr[] = "-";/*!< String of overcurrent */	
+ uint8_t OverheatStr[] = "T";	/*!< String of overheat*/
+ uint8_t NoConnStr[] = "?";		/*!< String of no communication */
 
-/*! Tablica łańcuchów znakowych (w zależności od języka) */
-const uint8_t PROGMEM * const Captions[][NUMBER_OF_LANGUAGES] =
+/*! Table of all texts (depends on language) */
+static const uint8_t PROGMEM * const Captions[][NUMBER_OF_LANGUAGES] =
 {
-//    Angielski                  Polski
+//    english                  polish
     { Channel1_Eng             , Channel1_Pol },
     { Channel2_Eng             , Channel2_Pol },
     { SetValues_Eng            , SetValues_Pol },
@@ -998,28 +1000,23 @@ const uint8_t PROGMEM * const Captions[][NUMBER_OF_LANGUAGES] =
 	{ TempProtectionOff_Eng    , TempProtectionOff_Pol }
 };
 
-/* Sekcja funkcji ------------------------------------------------------------*/
-
-// --->Deklaracje
-
-// Pokazywanie etykiety kanałów
-void ShowChannelsLabel();
+/* Function section ----------------------------------------------------------*/
 
 // --->Definicje
 
 /*----------------------------------------------------------------------------*/
 /**
- * @brief    Pobieranie nazwy ekranu z łańcucha
- * @param    array : wskaźnik do łańcucha
- * @param    length : długość łańcucha
- * @param    key : nazwa klucza (typ ekranu)
- * @retval   Znaleziony ekran
+ * @brief    Gets name of screen from array
+ * @param    array : pointer to the array
+ * @param    length : array length
+ * @param    key : key name (screen type)
+ * @retval   Found screen
  */
-Screen_t GetScreen(const Screen_t *array, uint8_t length, EMenuScreen_t key)
+static Screen_t GetScreen(const Screen_t *array, uint8_t length, EMenuScreen_t key)
 {
-    uint8_t index;					// Indeks
-    Screen_t result;				// Zwracana wartość
-
+    uint8_t index;
+    Screen_t result;
+	
     for (index = 0; index < length; index++)
     {
         if (array[index].Type == key)
@@ -1034,27 +1031,25 @@ Screen_t GetScreen(const Screen_t *array, uint8_t length, EMenuScreen_t key)
 
 /*----------------------------------------------------------------------------*/
 /**
- * @brief    Wyświetlanie ekranu
- * @param    isShiftToTheRigth : flaga oznaczająca przesuwanie menu w prawo
- * @retval   Brak
+ * @brief    Shows screen
+ * @param    isShiftToTheRigth : menu right shifting flag
+ * @retval   None
  */
-void ShowScreen(uint8_t isShiftToTheRigth)
+static void ShowScreen(uint8_t isShiftToTheRigth)
 {
-    // Ukrywanie dodatkowych ekranów w trybie normalnym
+    // Hiding additional screens during normal mode
     if (!IsAdvancedMode && Screens[ScreenIdx].AdvancedMode)
         while (Screens[ScreenIdx].AdvancedMode)
 		{
             ScreenIdx += isShiftToTheRigth ? 1 : -1;
 			
-			// Zawijanie ekranów
-			if (ScreenIdx < 0)
-			ScreenIdx = AmountOfScreens - 1;
-			else if (ScreenIdx >= AmountOfScreens)
-			ScreenIdx = 0;
+			// Screen wrapping
+			if (ScreenIdx < 0) ScreenIdx = AmountOfScreens - 1;
+			else if (ScreenIdx >= AmountOfScreens) ScreenIdx = 0;
 		}		
-	// Wyświetlanie wszystkich ekranów    
+	// Showing all screens
 	else
-		// Zawijanie ekranów
+		// Screen wrapping
 		if (ScreenIdx < 0)
 			ScreenIdx = AmountOfScreens - 1;
 		else if (ScreenIdx >= AmountOfScreens)
@@ -1065,539 +1060,21 @@ void ShowScreen(uint8_t isShiftToTheRigth)
 
 /*----------------------------------------------------------------------------*/
 /**
- * @brief    Obsługa przycisków menu
- * @param    Brak
- * @retval   Brak
+ * @brief    Gets texts to display.
+ * @param    captionIdx : index of text
+ * @retval   Pointer t the text
  */
-void MenuKeysHandler(void)
-{
-    uint8_t key = GetKey();			// Wciśnięty przycisk
-    // Prescaler dla celów realizacji migania edytowanej zmiennej
-    static uint16_t cursorPresc = CURSOR_TIME;
-    // Flaga oznaczająca krótkie wciśnięcie przycisku
-    bool isKeyShortPressed = IsKeyShortPressed(key);
-    // Flaga oznaczająca zmianę wciśnięcia przycisku
-    bool isKeyToggled = IsKeyToggled(key);
-    // Flaga oznaczająca długie wciśnięcie przycisku
-    bool isKeyLongPressed = IsKeyLongPressed(key);
-	// Wskaźniki do aktualnie zmienianego
-    uint16_t *current = 0, *voltage = 0;
-    // natężenia prądu i napięcia
-    uint8_t editableValues = 0;		// Liczba edytowalnych wartości
-	// Poprzedni stan przycisków
-    MenuKeyState_t previousState = 0;
-    uint16_t *softStartTime;		// Aktualny rejestr czasu łagodnego startu
-
-	// Przyciski nie działają podczas połączenia z PC
-	if (!PSDataService_GetIsConnected())
-	{
-		// Obsługa timera migotania kursora
-		if (!(--cursorPresc))
-		{
-			cursorPresc = CURSOR_TIME;
-			IsCursorToggled = true;
-			IsEditingPending = false;
-		}
-
-		// Wyjście z trybu 'przekroczenia natężenia prądu'
-		if ((PSMData[0].Get.Data.IsOvercurrent || 
-			 PSMData[1].Get.Data.IsOvercurrent) &&
-			(isKeyToggled && isKeyShortPressed))
-		{
-			previousState = CurrentMenuKeyState;
-			CurrentMenuKeyState = MKS_OVERCURRENT;
-		}
-
-		// Obsługa samych przycisków
-		switch (CurrentMenuKeyState)
-		{
-				// --->Wychodzenie z trybu przekroczenia natężenia prądu
-			case MKS_OVERCURRENT:
-				// Próby włączenia modułów
-				if (PSMData[0].Get.Data.IsOvercurrent)
-					SetRegulator(true, 0);
-				if (PSMData[1].Get.Data.IsOvercurrent)
-					SetRegulator(true, 1);
-
-				KEY_BEEP();
-
-				// Przywrócenie poprzedniego stanu przycisków
-				CurrentMenuKeyState = previousState;
-
-				break;
-
-				// --->Zmiana wartości edytowalnych
-			case MKS_VALUE_EDITION:
-				// Zawijanie zmiennych edytowanych
-				if ((isKeyToggled && isKeyShortPressed) ||
-					 isKeyLongPressed)
-				{
-					KEY_BEEP();
-
-					// Zmiana edytowanej wartości
-					if (key == 'L' || key == 'R' )
-					{
-						// Długie naciśnięcie wychodzi z trybu edycji
-						if (isKeyLongPressed)
-						{
-							EDITION_BEEP();
-							CurrentMenuKeyState = MKS_SCREEN_NAME;
-						}
-						// Krótkie naciśnięcie
-						else if (isKeyShortPressed)
-						{
-							EditIndex += key == 'L' ? -1 : 1;
-
-							// Pobieranie liczby edytowalnych wartości
-							switch (CurrentScreen)
-							{
-								case MS_SET_VALUES:
-									editableValues = 4;
-
-									break;
-								case MS_SET_PWM:
-									editableValues = 2;
-
-									break;
-								
-								default:
-									break;
-							}
-
-							// Zawijanie edytowanych wartości
-							if (EditIndex < 1)
-							{
-								EditIndex = editableValues;
-							}
-							else if (EditIndex > editableValues)
-							{
-								EditIndex = 1;
-							}
-						}
-					}
-					else if (key == 'U' || key == 'D')
-					{
-						// Brak migania kursora na czas zmiany wartości
-						IsEditingPending = true;
-						cursorPresc = CURSOR_TIME;
-
-						// Edycja wartości
-						switch (CurrentScreen)
-						{
-							// Wartości zadane
-							case MS_SET_VALUES:
-								// Jakie pole jest edytowane?
-								switch (EditIndex)
-								{
-									// Napięcie kanału #1
-									case 1:
-										voltage = &Settings.SetVoltage[0];
-
-										break;
-
-									// Natężenie prądu kanału #1
-									case 2:
-										current = &Settings.SetCurrent[0];
-
-										break;
-
-									// Napięcie kanału #2
-									case 3:
-										voltage = &Settings.SetVoltage[1];
-
-										break;
-
-									// Natężenie prądu kanału #2
-									case 4:
-										current = &Settings.SetCurrent[1];
-
-										break;
-								}
-
-								// Czy to zmiana napięcie czy natężenia prądu?
-								if (current)
-								{
-									// Zwiększanie
-									if (key == 'U')
-									{
-										*current += isKeyLongPressed ? 100 : 1;
-
-										if (*current > HIGH_CURRENT)
-										{
-											*current = HIGH_CURRENT;
-											WRONG_BEEP();
-										}
-									}
-									// Zmniejszanie
-									else
-									{
-										*current -= isKeyLongPressed ? 100 : 1;
-
-										if ((int16_t)*current < LOW_CURRENT)
-										{
-											*current = LOW_CURRENT;
-											WRONG_BEEP();
-										}
-									}
-								}
-								else if (voltage)
-								{
-									// Zwiększanie
-									if (key == 'U')
-									{
-										*voltage += isKeyLongPressed ? 1000 : 100;
-
-										if (*voltage > HIGH_VOLTAGE)
-										{
-											*voltage = HIGH_VOLTAGE;
-											WRONG_BEEP();
-										}
-									}
-									// Zmniejszanie
-									else
-									{
-										*voltage -= isKeyLongPressed ? 1000 : 100;
-
-										if ((int16_t)*voltage < LOW_VOLTAGE)
-										{
-											*voltage = LOW_VOLTAGE;
-											WRONG_BEEP();
-										}
-									}
-								}
-
-								break;
-
-							// Wartości zadane PWM
-							case MS_SET_PWM:
-								// Zwiększanie
-								if (key == 'U')
-								{
-									Settings.SetPWM[EditIndex - 1] +=
-										isKeyLongPressed ? 100 : 1;
-
-									// Ograniczanie wartości
-									if (Settings.SetPWM[EditIndex - 1] >
-											HIGH_VOLTAGE_PWM)
-									{
-										Settings.SetPWM[EditIndex - 1] =
-											HIGH_VOLTAGE_PWM;
-										WRONG_BEEP();
-									}
-								}
-								else
-								{
-									Settings.SetPWM[EditIndex - 1] -=
-										isKeyLongPressed ? 100 : 1;
-
-									// Ograniczanie wartości
-									if ((int16_t)Settings.SetPWM[EditIndex - 1]
-									    < LOW_VOLTAGE_PWM)
-									{
-										Settings.SetPWM[EditIndex - 1] =
-											LOW_VOLTAGE_PWM;
-										WRONG_BEEP();
-									}
-								}
-
-								break;
-							
-							// Pozostałe wartości
-							default:
-								break;
-						}
-
-						SaveSettings();		// Zapis ustawień
-					}
-				}
-
-				break;
-
-			// --->Zmiana ekranu
-			case MKS_SCREEN_NAME:
-				EditIndex = 0;
-
-				// Długie wciśnięcie przycisku
-				if (isKeyLongPressed)
-				{
-					// Przejście do trybu edycji
-					if (key == 'U' &&
-					   (CurrentScreen == MS_SET_VALUES ||
-						CurrentScreen == MS_SET_PWM))
-					{
-						EDITION_BEEP();
-						CurrentMenuKeyState = MKS_VALUE_EDITION;
-						EditIndex = 1;
-					}
-					// Wyjście z ustawień lub innych ekranów
-					else if ((key == 'R' || key == 'L') &&
-							 (Screens == SettingsScreens ||
-							  Screens == GeneralSettingsScreens ||
-							  Screens == PSSettingsScreens ||
-							  Screens == AboutScreens))
-					{
-						EDITION_BEEP();
-						ScreenIdx = 0;
-
-						if (Screens == SettingsScreens ||
-							Screens == AboutScreens)
-						{
-							AmountOfScreens = AMOUNT_OF_SCREENS(MenuScreens);
-							Screens = MenuScreens;
-						}
-						else if (Screens == GeneralSettingsScreens ||
-								 Screens == PSSettingsScreens)
-						{
-							AmountOfScreens =
-								AMOUNT_OF_SCREENS(SettingsScreens);
-							Screens = SettingsScreens;
-						}
-						CurrentScreen = Screens[0].Type;
-					}
-					// Edycja parametrów podczas długiego wciśnięcia
-					else if (key == 'U' || key == 'D') 
-					{
-						 KEY_BEEP();
-					
-						// Jaki wybrano ekran?
-						switch (CurrentScreen)
-						{
-							// Zmiana czasu łagodnego startu
-							case MS_SS1_SETTINGS:
-							case MS_SS2_SETTINGS:
-								softStartTime =
-									CurrentScreen == MS_SS1_SETTINGS ?
-									&Settings.SoftStartTime[0] :
-									&Settings.SoftStartTime[1];
-								*softStartTime = key == 'U' ?
-									*softStartTime + 10 : *softStartTime -10;
-								LIMIT_VALUE(*softStartTime,
-											SOFT_START_TIME_MAX,
-											SOFT_START_TIME_MIN);
-
-								break;
-						
-							// Pozostały wybór	
-							default:
-								break;
-						}
-					}					
-				}
-				// Krótkie wciśnięcie przycisku
-				else if (isKeyToggled && isKeyShortPressed)
-				{
-					// Dźwięk przycisków
-					if ((key == 'U' && Screens != SettingsScreens &&
-						 CurrentScreen == MS_SETTINGS &&
-						 CurrentScreen == MS_ABOUT) ||
-						(key == 'D' &&
-						(CurrentScreen == MS_SETTINGS ||
-						 CurrentScreen == MS_ABOUT)))
-					{
-						WRONG_BEEP();
-					}
-					else
-					{
-						KEY_BEEP();
-
-						// Zmiana trybu zasilania
-						if (key == 'D' &&
-							Screens == MenuScreens &&
-							CurrentScreen != MS_SETTINGS &&
-							CurrentScreen != MS_ABOUT)
-						{
-							Settings.IsSymModeEnabled =
-								!Settings.IsSymModeEnabled;
-							if (Settings.IsSymModeEnabled)
-							{
-								SYM_MODE_ON();
-							}
-							else
-							{
-								SYM_MODE_OFF();
-							}
-							ShowChannelsLabel();
-						}
-					}
-
-					if (key == 'L' || key == 'R')
-					{
-						// Poprzedni lub następny ekran
-						ScreenIdx += key == 'R' ? 1 : -1;
-						ShowScreen(key == 'R');
-					}
-					else if (key == 'U' || key == 'D')
-					{
-						// Jaki wybrano ekran?
-						switch (CurrentScreen)
-						{
-							// Zmiana języka menu
-							case MS_LANGUAGE_SETTINGS:
-								Settings.Language =
-									(uint8_t)(key == 'U' ?
-											  Settings.Language + 1 :
-											  Settings.Language - 1) %
-									NUMBER_OF_LANGUAGES;
-
-								// Odświeżenie ekranu
-								CurrentScreen =
-									GetScreen(Screens,
-									          AmountOfScreens,
-											  MS_SCREEN_LANGUAGE).Type;
-
-								break;
-
-							// Zmiana podświetlenia ekranu
-							case MS_DISPLAY_SETTINGS:
-								Settings.LcdBrightness =
-									key == 'U' ?
-									Settings.LcdBrightness + DISP_BACKL_STEP :
-									Settings.LcdBrightness - DISP_BACKL_STEP;
-								LIMIT_VALUE(Settings.LcdBrightness,
-											DISP_BACKL_MAX, DISP_BACKL_MIN);
-								SetLcdBacklight(Settings.LcdBrightness);
-
-								break;
-
-							// Wyciszanie dźwięków systemowych
-							case MS_SOUND_SETTINGS:
-								Settings.AudioMute = !Settings.AudioMute;
-								if (Settings.AudioMute)
-									TDA8551_SetVolume(0);
-								else
-									TDA8551_Init();
-
-								break;
-
-							// Wejście w ustawienia
-							case MS_SETTINGS:
-								if (key == 'U')
-								{
-									ScreenIdx = 0;
-									Screens = SettingsScreens;
-									AmountOfScreens =
-										AMOUNT_OF_SCREENS(SettingsScreens);
-									CurrentScreen = Screens[0].Type;
-									ShowScreen(true);
-								}
-
-								break;
-
-							// Wejście w ustawienia ogólne
-							case MS_GENERAL_SETTINGS:
-								if (key == 'U')
-								{
-									ScreenIdx = 0;
-									Screens = GeneralSettingsScreens;
-									AmountOfScreens =
-										AMOUNT_OF_SCREENS(
-											GeneralSettingsScreens);
-									CurrentScreen = Screens[0].Type;
-									ShowScreen(true);
-								}
-
-								break;
-
-							// Wejście w ustawienia zasilacza
-							case MS_PS_SETTINGS:
-								if (key == 'U')
-								{
-									ScreenIdx = 0;
-									Screens = PSSettingsScreens;
-									AmountOfScreens =
-										AMOUNT_OF_SCREENS(PSSettingsScreens);
-									CurrentScreen = Screens[0].Type;
-									ShowScreen(true);
-								}
-
-								break;
-
-							// Wejście w informacje o zasilaczu
-							case MS_ABOUT:
-								if (key == 'U')
-								{
-									ScreenIdx = 0;
-									Screens = AboutScreens;
-									AmountOfScreens =
-										AMOUNT_OF_SCREENS(AboutScreens);
-									CurrentScreen = Screens[0].Type;
-									ShowScreen(true);
-								}
-
-								break;
-
-							// Zmiana czasu łagodnego startu
-							case MS_SS1_SETTINGS:
-							case MS_SS2_SETTINGS:
-								softStartTime =
-									CurrentScreen == MS_SS1_SETTINGS ?
-									&Settings.SoftStartTime[0] :
-									&Settings.SoftStartTime[1];
-								*softStartTime =
-									key == 'U' ?
-										*softStartTime + 1 : *softStartTime -1;
-								LIMIT_VALUE(*softStartTime,
-											SOFT_START_TIME_MAX,
-											SOFT_START_TIME_MIN);
-
-								break;
-							
-							// Zmiana maksymalnej temperatury
-							case MS_MAX_TEMP_SETTINGS:
-								Settings.MaxTemperature += 
-									key == 'U' ? 10 : -10;
-								LIMIT_VALUE(Settings.MaxTemperature,
-											MAX_TEMP_MAX, MAX_TEMP_MIN);
-						
-								break;
-							
-							// Zmiana histerezy temperatury
-							case MS_TEMP_HYSTERESIS_SETTINGS:
-								Settings.TempHisteresis +=
-									key == 'U' ? 10 : -10;
-								LIMIT_VALUE(Settings.TempHisteresis,
-											TEMP_HISTERESIS_MAX, 
-											TEMP_HISTERESIS_MIN);
-							
-								break;
-							
-							// Zmiana ustawień zabezpieczenia temperaturowego
-							case MS_TEMP_PROTECTION_SETTINGS:
-								Settings.IsTempProtectionEnabled = 
-									!Settings.IsTempProtectionEnabled;
-						
-								break;
-							
-							default:
-								break;
-						}
-
-						SaveSettings();	// Zapis ustawień
-					}
-				}
-
-				break;
-		}
-	}
-}
-
-/*----------------------------------------------------------------------------*/
-/**
- * @brief    Pobieranie napisu do wyświetlenia
- * @param    captionIdx : numer napisu
- * @retval   Wskaźnik do odpowiedniego tekstu
- */
-uint8_t *GetCaption(ECaptionIndex_t captionIdx, ...)
+static uint8_t *GetCaption(ECaptionIndex_t captionIdx, ...)
 {
     va_list args;
     uint8_t *string;
 
-    // Kopiowanie wskaźnika tekstu z pamięci Flash
+    // Gets text pointer from Flash.
     memcpy_P(&string,
              &Captions[captionIdx][Settings.Language],
              sizeof(uint8_t *));
 
-    // Kopiowanie tekstu z pamięci Flash
+    // Gets text from Flash.
     va_start(args, captionIdx);
     vsnprintf_P((char*)StringBuff,
 	            sizeof(StringBuff) - 1,
@@ -1609,81 +1086,15 @@ uint8_t *GetCaption(ECaptionIndex_t captionIdx, ...)
 
 /*----------------------------------------------------------------------------*/
 /**
- * @brief    Funkcja pokazywania ekranu początkowego
- * @param    Brak
- * @retval   Brak
+ * @brief    Shows channel captions.
+ * @param    None
+ * @retval   None
  */
-void ShowSplashScreen(void)
-{
-    uint8_t idx1, idx2;				// Indeks pomocniczy
-    int8_t currScreen = -1;			// Indeks aktualnie wyświetlonego ekranu
-    uint8_t stepsPerScreen;			// Liczba kroków do przesunięcia ekranu
-    uint8_t *screens[] =			// Ekrany początkowe
-    {
-        SplashScreen1,
-        SplashScreen2
-    };
-    // Rozmiar kroku ( w pikselach)
-#define STEP_SIZE		(15)
-    // Liczba ekranów powitalnych
-#define SCREENS_NUMBER	(sizeof(screens) / sizeof(uint8_t *))
-    // Czas w ms na pojedynczy ekran
-#define SHOWING_TIME	(2000)
-
-    // Obliczanie liczby kroków przypadających na pojedynczy ekran
-    stepsPerScreen = KS0108LCD_WIDTH / STEP_SIZE +
-                     (KS0108LCD_WIDTH % STEP_SIZE ? 1 : 0);
-
-    SetKeyboardLock(true);			// Zablokowanie klawiatury
-    PlayRing(Intro);				// Dzwonek startowy
-
-    // Wyświetlanie ekranów powitalnych
-    for (idx1 = 0; idx1 < stepsPerScreen * SCREENS_NUMBER; idx1++)
-    {
-        for (idx2 = 0; idx2 < SCREENS_NUMBER; idx2++)
-        {
-            KS0108LCD_PutImage_P(screens[idx2] +
-                              sizeof(BitmapHeader_t),
-                              (idx1 - idx2 * stepsPerScreen) * STEP_SIZE, 0,
-                              currScreen != (SCREENS_NUMBER - 1) ?
-                              true : false);
-        }
-
-        // Opóźnienie
-        if (!(idx1 % stepsPerScreen))
-        {
-			// Wyświetlanie wersji oprogramowania i praw autorskich
-            if (++currScreen == 1)
-            {
-                PutTextBlock_P((TextBlock_t*)&PART_Rights,
-                               GetCaption(CI_RIGHTS, GetCompileYear()));
-                PutTextBlock_P((TextBlock_t*)&PART_Firmware,
-                               GetCaption(CI_FW_VERSION, FIRMWARE_VERSION));
-            }
-
-            Wait_ms(SHOWING_TIME);	// Ekran zatrzymany
-        }
-        else
-        {
-            // Przesuwanie ekranu
-            Wait_ms(100);
-        }
-    }
-
-    SetKeyboardLock(false);			// Odblokowanie klawiatury
-}
-
-/*----------------------------------------------------------------------------*/
-/**
- * @brief    Pokazywanie etykiety kanałów
- * @param    Brak
- * @retval   Brak
- */
-void ShowChannelsLabel(void)
+static void ShowChannelsLabel(void)
 {
 	KS0108LCD_BlockScreen(true);
 
-    // Etykieta kanału #1
+    // Channel #1 label
     PutTextBlock_P((TextBlock_t*)&PART_Channel1,
                    GetCaption(CI_CHANNEL1_LABEL,
 			                  Settings.IsSymModeEnabled ||
@@ -1700,7 +1111,7 @@ void ShowChannelsLabel(void)
 			                  PSMData[0].ConnReg.IsConnected ? 
 							      EmptyString : NoConnStr));
 
-    // Etykieta kanału #2
+    // Channel #2 label
     PutTextBlock_P((TextBlock_t*)&PART_Channel2,
                    GetCaption(CI_CHANNEL2_LABEL,
 			                  Settings.IsSymModeEnabled ||
@@ -1721,29 +1132,591 @@ void ShowChannelsLabel(void)
 }
 
 /*----------------------------------------------------------------------------*/
-/**
- * @brief    Przygotowanie ekranu głównego
- * @param    Brak
- * @retval   Brak
- */
-void PrepareScreen(void)
+void MenuKeysHandler(void)
 {
-    uint8_t index = 0;				// Indeks pomocniczy	
-	uint8_t amountOfVisibleScreens;	// Liczba widocznych ekranów 
+	uint8_t key = GetKey();
+	// Prescaler of blinking cursor for edited value
+	static uint16_t cursorPresc = CURSOR_TIME;
+	bool isKeyShortPressed = IsKeyShortPressed(key);
+	bool isKeyToggled = IsKeyToggled(key);
+	bool isKeyLongPressed = IsKeyLongPressed(key);
+	uint16_t *current = 0, *voltage = 0;
+	uint8_t editableValues = 0;
+	MenuKeyState_t previousState = 0;
+	uint16_t *softStartTime;
 
-	// Zapamiętanie aktualnej nazwy ekranu
+	// During PC connection buttons are disabled
+	if (!PSDataService_GetIsConnected())
+	{
+		// Cursor blinking timer
+		if (!(--cursorPresc))
+		{
+			cursorPresc = CURSOR_TIME;
+			IsCursorToggled = true;
+			IsEditingPending = false;
+		}
+
+		// Overcurrent mode exit
+		if ((PSMData[0].Get.Data.IsOvercurrent ||
+		PSMData[1].Get.Data.IsOvercurrent) &&
+		(isKeyToggled && isKeyShortPressed))
+		{
+			previousState = CurrentMenuKeyState;
+			CurrentMenuKeyState = MKS_OVERCURRENT;
+		}
+
+		// Key handler
+		switch (CurrentMenuKeyState)
+		{
+			// --->Overcurrent mode exit
+			case MKS_OVERCURRENT:
+			// Module activation try
+			if (PSMData[0].Get.Data.IsOvercurrent)
+			SetRegulator(true, 0);
+			if (PSMData[1].Get.Data.IsOvercurrent)
+			SetRegulator(true, 1);
+
+			KEY_BEEP();
+			CurrentMenuKeyState = previousState;
+
+			break;
+
+			// --->Change of editable values
+			case MKS_VALUE_EDITION:
+			// Wrapping of edited values
+			if ((isKeyToggled && isKeyShortPressed) ||
+			isKeyLongPressed)
+			{
+				KEY_BEEP();
+
+				// Change of edited value
+				if (key == 'L' || key == 'R' )
+				{
+					// Long press - edition mode exit
+					if (isKeyLongPressed)
+					{
+						EDITION_BEEP();
+						CurrentMenuKeyState = MKS_SCREEN_NAME;
+					}
+					// Short press
+					else if (isKeyShortPressed)
+					{
+						EditIndex += key == 'L' ? -1 : 1;
+
+						// Gets edited values number.
+						switch (CurrentScreen)
+						{
+							case MS_SET_VALUES:
+							editableValues = 4;
+
+							break;
+							case MS_SET_PWM:
+							editableValues = 2;
+
+							break;
+							
+							default:
+							break;
+						}
+
+						// Wrapping of edited values.
+						if (EditIndex < 1)
+						{
+							EditIndex = editableValues;
+						}
+						else if (EditIndex > editableValues)
+						{
+							EditIndex = 1;
+						}
+					}
+				}
+				else if (key == 'U' || key == 'D')
+				{
+					// No cursor blinking during value change
+					IsEditingPending = true;
+					cursorPresc = CURSOR_TIME;
+
+					// Value edition
+					switch (CurrentScreen)
+					{
+						// Set values
+						case MS_SET_VALUES:
+						// Which field is edited?
+						switch (EditIndex)
+						{
+							// Channel #1 voltage
+							case 1:
+							voltage = &Settings.SetVoltage[0];
+
+							break;
+
+							// Channel #1 current
+							case 2:
+							current = &Settings.SetCurrent[0];
+
+							break;
+
+							// Channel #2 voltage
+							case 3:
+							voltage = &Settings.SetVoltage[1];
+
+							break;
+
+							// Channel #2 current
+							case 4:
+							current = &Settings.SetCurrent[1];
+
+							break;
+						}
+
+						// Is it voltage or current change?
+						if (current)
+						{
+							// Increasing
+							if (key == 'U')
+							{
+								*current += isKeyLongPressed ? 100 : 1;
+
+								if (*current > HIGH_CURRENT)
+								{
+									*current = HIGH_CURRENT;
+									WRONG_BEEP();
+								}
+							}
+							// Decreasing
+							else
+							{
+								*current -= isKeyLongPressed ? 100 : 1;
+
+								if ((int16_t)*current < LOW_CURRENT)
+								{
+									*current = LOW_CURRENT;
+									WRONG_BEEP();
+								}
+							}
+						}
+						else if (voltage)
+						{
+							// Increasing
+							if (key == 'U')
+							{
+								*voltage += isKeyLongPressed ? 1000 : 100;
+
+								if (*voltage > HIGH_VOLTAGE)
+								{
+									*voltage = HIGH_VOLTAGE;
+									WRONG_BEEP();
+								}
+							}
+							// Decreasing
+							else
+							{
+								*voltage -= isKeyLongPressed ? 1000 : 100;
+
+								if ((int16_t)*voltage < LOW_VOLTAGE)
+								{
+									*voltage = LOW_VOLTAGE;
+									WRONG_BEEP();
+								}
+							}
+						}
+
+						break;
+
+						// Set PWM values
+						case MS_SET_PWM:
+						// Increasing
+						if (key == 'U')
+						{
+							Settings.SetPWM[EditIndex - 1] +=
+							isKeyLongPressed ? 100 : 1;
+
+							// Value limiter
+							if (Settings.SetPWM[EditIndex - 1] >
+							HIGH_VOLTAGE_PWM)
+							{
+								Settings.SetPWM[EditIndex - 1] =
+								HIGH_VOLTAGE_PWM;
+								WRONG_BEEP();
+							}
+						}
+						else
+						{
+							Settings.SetPWM[EditIndex - 1] -=
+							isKeyLongPressed ? 100 : 1;
+
+							// Value limiter
+							if ((int16_t)Settings.SetPWM[EditIndex - 1]
+							< LOW_VOLTAGE_PWM)
+							{
+								Settings.SetPWM[EditIndex - 1] =
+								LOW_VOLTAGE_PWM;
+								WRONG_BEEP();
+							}
+						}
+
+						break;
+						
+						// Other values
+						default:
+						break;
+					}
+
+					SaveSettings();
+				}
+			}
+
+			break;
+
+			// --->Screen change
+			case MKS_SCREEN_NAME:
+			EditIndex = 0;
+
+			// Long press
+			if (isKeyLongPressed)
+			{
+				// Edition mode enter
+				if (key == 'U' &&
+				(CurrentScreen == MS_SET_VALUES ||
+				CurrentScreen == MS_SET_PWM))
+				{
+					EDITION_BEEP();
+					CurrentMenuKeyState = MKS_VALUE_EDITION;
+					EditIndex = 1;
+				}
+				// Exit from settings or other screens
+				else if ((key == 'R' || key == 'L') &&
+				(Screens == SettingsScreens ||
+				Screens == GeneralSettingsScreens ||
+				Screens == PSSettingsScreens ||
+				Screens == AboutScreens))
+				{
+					EDITION_BEEP();
+					ScreenIdx = 0;
+
+					if (Screens == SettingsScreens ||
+					Screens == AboutScreens)
+					{
+						AmountOfScreens = AMOUNT_OF_SCREENS(MenuScreens);
+						Screens = MenuScreens;
+					}
+					else if (Screens == GeneralSettingsScreens ||
+					Screens == PSSettingsScreens)
+					{
+						AmountOfScreens =
+						AMOUNT_OF_SCREENS(SettingsScreens);
+						Screens = SettingsScreens;
+					}
+					CurrentScreen = Screens[0].Type;
+				}
+				// Edycja parametrów podczas długiego wciśnięcia
+				else if (key == 'U' || key == 'D')
+				{
+					KEY_BEEP();
+					
+					// Jaki wybrano ekran?
+					switch (CurrentScreen)
+					{
+						// Zmiana czasu łagodnego startu
+						case MS_SS1_SETTINGS:
+						case MS_SS2_SETTINGS:
+						softStartTime =
+						CurrentScreen == MS_SS1_SETTINGS ?
+						&Settings.SoftStartTime[0] :
+						&Settings.SoftStartTime[1];
+						*softStartTime = key == 'U' ?
+						*softStartTime + 10 : *softStartTime -10;
+						LIMIT_VALUE(*softStartTime,
+						SOFT_START_TIME_MAX,
+						SOFT_START_TIME_MIN);
+
+						break;
+						
+						// Pozostały wybór
+						default:
+						break;
+					}
+				}
+			}
+			// Short press
+			else if (isKeyToggled && isKeyShortPressed)
+			{
+				// Key sound
+				if ((key == 'U' && Screens != SettingsScreens &&
+				CurrentScreen == MS_SETTINGS &&
+				CurrentScreen == MS_ABOUT) ||
+				(key == 'D' &&
+				(CurrentScreen == MS_SETTINGS ||
+				CurrentScreen == MS_ABOUT)))
+				{
+					WRONG_BEEP();
+				}
+				else
+				{
+					KEY_BEEP();
+
+					// Change of power mode
+					if (key == 'D' &&
+					Screens == MenuScreens &&
+					CurrentScreen != MS_SETTINGS &&
+					CurrentScreen != MS_ABOUT)
+					{
+						Settings.IsSymModeEnabled =
+						!Settings.IsSymModeEnabled;
+						if (Settings.IsSymModeEnabled)
+						{
+							SYM_MODE_ON();
+						}
+						else
+						{
+							SYM_MODE_OFF();
+						}
+						ShowChannelsLabel();
+					}
+				}
+
+				if (key == 'L' || key == 'R')
+				{
+					// Previous or next screen
+					ScreenIdx += key == 'R' ? 1 : -1;
+					ShowScreen(key == 'R');
+				}
+				else if (key == 'U' || key == 'D')
+				{
+					// What screen is chosen?
+					switch (CurrentScreen)
+					{
+						// Menu language change
+						case MS_LANGUAGE_SETTINGS:
+						Settings.Language =
+						(uint8_t)(key == 'U' ?
+						Settings.Language + 1 :
+						Settings.Language - 1) %
+						NUMBER_OF_LANGUAGES;
+
+						// Screen refresh
+						CurrentScreen =
+						GetScreen(Screens,
+						AmountOfScreens,
+						MS_SCREEN_LANGUAGE).Type;
+
+						break;
+
+						// Change of screen backlight
+						case MS_DISPLAY_SETTINGS:
+						Settings.LcdBrightness =
+						key == 'U' ?
+						Settings.LcdBrightness + DISP_BACKL_STEP :
+						Settings.LcdBrightness - DISP_BACKL_STEP;
+						LIMIT_VALUE(Settings.LcdBrightness,
+						DISP_BACKL_MAX, DISP_BACKL_MIN);
+						SetLcdBacklight(Settings.LcdBrightness);
+
+						break;
+
+						// Muting all sounds
+						case MS_SOUND_SETTINGS:
+						Settings.AudioMute = !Settings.AudioMute;
+						if (Settings.AudioMute)
+						TDA8551_SetVolume(0);
+						else
+						TDA8551_Init();
+
+						break;
+
+						// Settings enter
+						case MS_SETTINGS:
+						if (key == 'U')
+						{
+							ScreenIdx = 0;
+							Screens = SettingsScreens;
+							AmountOfScreens =
+							AMOUNT_OF_SCREENS(SettingsScreens);
+							CurrentScreen = Screens[0].Type;
+							ShowScreen(true);
+						}
+
+						break;
+
+						// General settings enter
+						case MS_GENERAL_SETTINGS:
+						if (key == 'U')
+						{
+							ScreenIdx = 0;
+							Screens = GeneralSettingsScreens;
+							AmountOfScreens =
+							AMOUNT_OF_SCREENS(
+							GeneralSettingsScreens);
+							CurrentScreen = Screens[0].Type;
+							ShowScreen(true);
+						}
+
+						break;
+
+						// Power supply settings enter
+						case MS_PS_SETTINGS:
+						if (key == 'U')
+						{
+							ScreenIdx = 0;
+							Screens = PSSettingsScreens;
+							AmountOfScreens =
+							AMOUNT_OF_SCREENS(PSSettingsScreens);
+							CurrentScreen = Screens[0].Type;
+							ShowScreen(true);
+						}
+
+						break;
+
+						// Power supply info enter
+						case MS_ABOUT:
+						if (key == 'U')
+						{
+							ScreenIdx = 0;
+							Screens = AboutScreens;
+							AmountOfScreens =
+							AMOUNT_OF_SCREENS(AboutScreens);
+							CurrentScreen = Screens[0].Type;
+							ShowScreen(true);
+						}
+
+						break;
+
+						// Change of soft-start time
+						case MS_SS1_SETTINGS:
+						case MS_SS2_SETTINGS:
+						softStartTime =
+						CurrentScreen == MS_SS1_SETTINGS ?
+						&Settings.SoftStartTime[0] :
+						&Settings.SoftStartTime[1];
+						*softStartTime =
+						key == 'U' ?
+						*softStartTime + 1 : *softStartTime -1;
+						LIMIT_VALUE(*softStartTime,
+						SOFT_START_TIME_MAX,
+						SOFT_START_TIME_MIN);
+
+						break;
+						
+						// Change of max. temperature
+						case MS_MAX_TEMP_SETTINGS:
+						Settings.MaxTemperature +=
+						key == 'U' ? 10 : -10;
+						LIMIT_VALUE(Settings.MaxTemperature,
+						MAX_TEMP_MAX, MAX_TEMP_MIN);
+						
+						break;
+						
+						// Change of temperature hysteresis
+						case MS_TEMP_HYSTERESIS_SETTINGS:
+						Settings.TempHisteresis +=
+						key == 'U' ? 10 : -10;
+						LIMIT_VALUE(Settings.TempHisteresis,
+						TEMP_HISTERESIS_MAX,
+						TEMP_HISTERESIS_MIN);
+						
+						break;
+						
+						// Change of temperature protection settings
+						case MS_TEMP_PROTECTION_SETTINGS:
+						Settings.IsTempProtectionEnabled =
+						!Settings.IsTempProtectionEnabled;
+						
+						break;
+						
+						default:
+						break;
+					}
+
+					SaveSettings();
+				}
+			}
+
+			break;
+		}
+	}
+}
+
+/*----------------------------------------------------------------------------*/
+void ShowSplashScreen(void)
+{
+    uint8_t idx1, idx2;
+    int8_t currScreen = -1;
+    uint8_t stepsPerScreen;
+    uint8_t *screens[] =
+    {
+        SplashScreen1,
+        SplashScreen2
+    };
+    // Step size (in pixels)
+#define STEP_SIZE		(15)
+    // Count of splash screens
+#define SCREENS_NUMBER	(sizeof(screens) / sizeof(uint8_t *))
+    // Single screen duration (in ms)
+#define SHOWING_TIME	(2000)
+
+    stepsPerScreen = KS0108LCD_WIDTH / STEP_SIZE +
+                     (KS0108LCD_WIDTH % STEP_SIZE ? 1 : 0);
+
+    SetKeyboardLock(true);
+    PlayRing(Intro);
+
+    // Showing splash screens
+    for (idx1 = 0; idx1 < stepsPerScreen * SCREENS_NUMBER; idx1++)
+    {
+        for (idx2 = 0; idx2 < SCREENS_NUMBER; idx2++)
+        {
+            KS0108LCD_PutImage_P(screens[idx2] +
+                              sizeof(BitmapHeader_t),
+                              (idx1 - idx2 * stepsPerScreen) * STEP_SIZE, 0,
+                              currScreen != (SCREENS_NUMBER - 1) ?
+                              true : false);
+        }
+
+        // Delay
+        if (!(idx1 % stepsPerScreen))
+        {
+			// Firmware version and copyrights
+            if (++currScreen == 1)
+            {
+                PutTextBlock_P((TextBlock_t*)&PART_Rights,
+                               GetCaption(CI_RIGHTS, GetCompileYear()));
+                PutTextBlock_P((TextBlock_t*)&PART_Firmware,
+                               GetCaption(CI_FW_VERSION, FIRMWARE_VERSION));
+            }
+
+            Wait_ms(SHOWING_TIME);
+        }
+        else
+        {            
+            Wait_ms(100);			// Screen shifting
+        }
+    }
+
+    SetKeyboardLock(false);
+}
+
+/*----------------------------------------------------------------------------*/
+/**
+ * @brief    Prepares main screen.
+ * @param    None
+ * @retval   None
+ */
+static void PrepareScreen(void)
+{
+    uint8_t index = 0;
+	uint8_t amountOfVisibleScreens;
+	
 	CurrentMenuName = CurrentScreen;
 
-    // Przygotowanie ekranu
     KS0108LCD_BlockScreen(true);
     KS0108LCD_Clear(0);
 	PART_DownNavigator.TextColor = PART_UpNavigator1.TextColor = SC_BLACK;
 
-    // Przygotowanie pamięci zmiennych i flag
+    // Preparation of variables and flags memory
     while (index < (sizeof(LastValues) / sizeof(uint32_t)))
         LastValues[index++] = -2;
 		
-	// Obliczanie liczby widocznych ekranów
+	// Calculation of visible screens
 	index = amountOfVisibleScreens = 0;
 	while (index < AmountOfScreens) 
 	{
@@ -1753,20 +1726,16 @@ void PrepareScreen(void)
 			amountOfVisibleScreens ++; 
 	}
 
-    // Tryb ustawień ogólnych
+    // General settings mode
     if (Screens == SettingsScreens)
     {
         PutTextBlock_P((TextBlock_t*)&PART_Settings, GetCaption(CI_SETTINGS));
-
-        // Nawigatory
         PutTextBlock(&PART_UpNavigator1, (uint8_t*)"\xEC");
     }
     else if (Screens == GeneralSettingsScreens)
     {
 		PutTextBlock_P((TextBlock_t*)&PART_Settings, 
 			           GetCaption(CI_GENERAL_SETTINGS_LABEL));
-
-        // Nawigatory
         PutTextBlock(&PART_UpNavigator1, (uint8_t*)"\xEC");
         PutTextBlock(&PART_DownNavigator, (uint8_t*)"\xED");
     }
@@ -1777,7 +1746,6 @@ void PrepareScreen(void)
 		
 		if (CurrentScreen == MS_SCREEN_TEMP_PROTECTION) 
 		{
-			// Nawigatory
 			PutTextBlock(&PART_UpNavigator1, (uint8_t*)"\xEC");
 			PutTextBlock(&PART_DownNavigator, (uint8_t*)"\xED");
 		}			
@@ -1786,15 +1754,13 @@ void PrepareScreen(void)
     {
         PutTextBlock_P((TextBlock_t*)&PART_Settings, GetCaption(CI_ABOUT));
     }
-    // Tryb głównego menu
+    // Main menu mode
     else if (Screens == MenuScreens &&
              CurrentScreen != MS_SCREEN_SETTINGS &&
              CurrentScreen != MS_SCREEN_ABOUT)
     {
-        ShowChannelsLabel();		// Nazwy kanałów
+        ShowChannelsLabel();
 		KS0108LCD_BlockScreen(true);
-
-        // Separator kanałów
         PutLine_P((Line_t*)&PART_ChannelsSeparator1);
         PutLine_P((Line_t*)&PART_ChannelsSeparator2);
     }
@@ -1804,10 +1770,9 @@ void PrepareScreen(void)
         PutTextBlock_P((TextBlock_t*)&PART_UpNavigator2, (uint8_t*)"\xEC");
     }
 
-    // Dolny separator #1
     PutLine_P((Line_t*)&PART_LowerSeparator1);
 
-    // Nawigatory
+    // Navigators
     if (amountOfVisibleScreens > 1)
     {
         PutTextBlock_P((TextBlock_t*)&PART_LeftNavigator, 
@@ -1816,28 +1781,26 @@ void PrepareScreen(void)
 		               GetCaption(CI_RIGHT_NAVIGATOR));
     }
 
-    // Wyświetlenie nazwy ekranu
     PutTextBlock(&PART_ScreenName, GetCaption(Screens[ScreenIdx].Name));
 }
 
 /*----------------------------------------------------------------------------*/
 /**
- * @brief    Skalowanie mocy i pobieranie jednostki
- * @param    power : moc w mW
- * @param    *unitIndex : wskaźnik do jednostki
- * @param    isModuleConnected : flaga określająca połączenie z modułem
- * @retval   Przeskalowana moc
+ * @brief    Power scaling and getting unit
+ * @param    power : power in mW
+ * @param    *unitIndex : pointer to the unit
+ * @param    isModuleConnected : connection flag
+ * @retval   Scaled power
  */
-uint8_t *ScaleThePower(uint32_t power,
-                       ECaptionIndex_t *unitIndex,
-					   bool isModuleConnected)
+static uint8_t *ScaleThePower(uint32_t power,
+                              ECaptionIndex_t *unitIndex,
+					          bool isModuleConnected)
 {
-    ldiv_t value;					// Wartość mocy
-    uint8_t *result;				// Rezultat
+    ldiv_t value;
+    uint8_t *result;
 
     *unitIndex = CI_LOW_POWER_UNIT;
 
-	// Czy jest połączenie z modułem?
 	if (isModuleConnected)
 	{
 		if (power > 1000)
@@ -1867,22 +1830,21 @@ uint8_t *ScaleThePower(uint32_t power,
 
 /*----------------------------------------------------------------------------*/
 /**
- * @brief    Skalowanie rezystancji i pobieranie jednostki
- * @param    resistance : rezystancja w ohm'ach
- * @param	 *unitIndex : jednostka rezystancji
- * @param    isModuleConnected : flaga określająca połączenie z modułem
- * @retval   Przeskalowana rezystancja
+ * @brief    Scaling of resistance and i unit getting
+ * @param    resistance : resistance in ohm's
+ * @param	 *unitIndex : resistance unit index
+ * @param    isModuleConnected :connection flag
+ * @retval   Scaled resistance
  */
-uint8_t *ScaleTheResistance(uint32_t resistance,
-                            ECaptionIndex_t *unitIndex,
-                            bool isModuleConnected)
+static uint8_t *ScaleTheResistance(uint32_t resistance,
+                                   ECaptionIndex_t *unitIndex,
+                                   bool isModuleConnected)
 {
-    ldiv_t value;					// Wartość rezystancji
-    uint8_t *result;				// Rezultat
+    ldiv_t value;
+    uint8_t *result;
 
     *unitIndex = CI_LOW_RESISTANCE_UNIT;
 
-	// Czy jest połączenie z modułem?
 	if (isModuleConnected)
 	{
 		if (resistance > 1000)
@@ -1931,15 +1893,15 @@ uint8_t *ScaleTheResistance(uint32_t resistance,
 
 /*----------------------------------------------------------------------------*/
 /**
- * @brief    Skalowanie napięcia
- * @param    voltage : napięcie w mV
- * @param    isOneHundredth : oznacza jedno miejsce po przecinku
- * @retval   Przeskalowane napięcie
+ * @brief    Voltage scaling
+ * @param    voltage : voltage in mV
+ * @param    isOneHundredth : means one place after coma
+ * @retval   Scaled voltage
  */
-uint8_t *ScaleTheVoltage(uint16_t voltage, bool isOneHundredth)
+static uint8_t *ScaleTheVoltage(uint16_t voltage, bool isOneHundredth)
 {
-    div_t value = div(voltage, 1000);	// Część całkowita i ułamkowa
-    uint8_t *result;					// Rezultat
+    div_t value = div(voltage, 1000);
+    uint8_t *result;
 
     if (!isOneHundredth)
     {
@@ -1961,31 +1923,19 @@ uint8_t *ScaleTheVoltage(uint16_t voltage, bool isOneHundredth)
 }
 
 /*----------------------------------------------------------------------------*/
-/**
- * @brief    Funkcja wyboru ekranu menu
- * @param    Brak
- * @retval   Brak
- */
 void MenuHandler(void)
 {
-    ECaptionIndex_t unit;			// Jednostka
-    // Pamięć przekroczeń natężenia prądu
-    static bool prevoiusIsOvercurrent[PS_MODULES_COUNT] = { -1, -1 };
-	// Pamięć przekroczeń temperatury
+    ECaptionIndex_t unit;
+    static bool previousIsOvercurrent[PS_MODULES_COUNT] = { -1, -1 };
 	static bool previousIsOverheat[PS_MODULES_COUNT] = { -1, -1 };
-	// Pamięć flag komunikacji z modułem
 	static bool previousConnFlag[PS_MODULES_COUNT] = { -1, -1 };
-	// Flaga określająca pamięć statusu połączenia z PC
 	static bool previousIsPCConnected = false;	
-	// Timer wyłączania wyświetlania
 	static uint16_t lcdOffTimer = LCD_OFF_TIMEOUT;
 	
-	// Czy jest zmiana połączenia z PC?
 	if (PSDataService_GetIsConnected() != previousIsPCConnected)
 	{
 		previousIsPCConnected = PSDataService_GetIsConnected();
 		
-		// Czy jest połączenie z PC?
 		if (previousIsPCConnected)
 		{
 			KS0108LCD_BlockScreen(true);
@@ -1994,12 +1944,11 @@ void MenuHandler(void)
 		}
 		else
 		{
-			// Przywrócenie poprzedniego ekranu
 			CurrentScreen = CurrentMenuName;
 		}
 	}
 	
-	// Opóźnione wyłączenie wyświetlania obrazu
+	// Delayed screen block
 	if (PSDataService_GetIsConnected())
 	{
 		if (!--lcdOffTimer)
@@ -2007,17 +1956,14 @@ void MenuHandler(void)
 			KS0108LCD_BlockScreen(true);
 		}
 	}
-	// W przypadku braku połączenia z PC pokazywanie MENU
 	else
 	{
-		// Odblokowanie ekranu
 		lcdOffTimer = LCD_OFF_TIMEOUT;
 		KS0108LCD_BlockScreen(false);
 				
-		// Sprawdzanie przekroczenia natężenia prądu w kanale i 
-		// komunikacji z modułem
-		if (PSMData[0].Get.Data.IsOvercurrent != prevoiusIsOvercurrent[0] ||
-			PSMData[1].Get.Data.IsOvercurrent != prevoiusIsOvercurrent[1] ||
+		// Checking of overcurrent and module communication
+		if (PSMData[0].Get.Data.IsOvercurrent != previousIsOvercurrent[0] ||
+			PSMData[1].Get.Data.IsOvercurrent != previousIsOvercurrent[1] ||
 			PSMData[0].Get.Data.IsOverheat != previousIsOverheat[0] ||
 			PSMData[1].Get.Data.IsOverheat != previousIsOverheat[1] ||
 			PSMData[0].ConnReg.IsConnected != previousConnFlag[0] ||
@@ -2027,8 +1973,8 @@ void MenuHandler(void)
 				CurrentScreen != MS_SETTINGS &&
 				CurrentScreen != MS_ABOUT)
 			{
-				prevoiusIsOvercurrent[0] = PSMData[0].Get.Data.IsOvercurrent;
-				prevoiusIsOvercurrent[1] = PSMData[1].Get.Data.IsOvercurrent;
+				previousIsOvercurrent[0] = PSMData[0].Get.Data.IsOvercurrent;
+				previousIsOvercurrent[1] = PSMData[1].Get.Data.IsOvercurrent;
 				previousIsOverheat[0] = PSMData[0].Get.Data.IsOverheat;
 				previousIsOverheat[1] = PSMData[1].Get.Data.IsOverheat;
 				previousConnFlag[0] = PSMData[0].ConnReg.IsConnected;
@@ -2036,35 +1982,32 @@ void MenuHandler(void)
 				ShowChannelsLabel();
 			}	
 			
-			// Generowanie dźwięku
+			// Sound generation
 			if (PSMData[0].Get.Data.IsOvercurrent ||
 				PSMData[1].Get.Data.IsOvercurrent ||
 				PSMData[0].Get.Data.IsOverheat || 
 				PSMData[1].Get.Data.IsOverheat)
 			{
-				// Przekroczenie dopuszczalnych wartości
 				OVERLOAD_BEEP();				
 			}
 			else
 			{
-				// Sytuacja normalna
 				StopSoundPlay();
 			}										
 		}
 
-		// Wybór ekranu
+		// Screen selection
 		switch (CurrentScreen)
 		{
-			// --->Stan początkowy
+			// --->Initial state
 			case MS_START:
 				ShowScreen(true);
 				CurrentScreen = MS_SCREEN_SET_VALUES;
 
 				break;
 
-			// --->Widok nazwy ekranu wartości zadanych
+			// --->View of name of set values
 			case MS_SCREEN_SET_VALUES:
-				// Przygotowanie ekranu
 				PrepareScreen();
 				PutTextBlock_P((TextBlock_t*)&PART_Ch1BiggerUnit, 
 							   GetCaption(CI_VOLTAGE_UNIT));
@@ -2074,20 +2017,16 @@ void MenuHandler(void)
 							   GetCaption(CI_VOLTAGE_UNIT));
 				PutTextBlock_P((TextBlock_t*)&PART_Ch2LowerUnit, 
 							   GetCaption(CI_CURRENT_UNIT));
-
-				// Wybranie trybu automatycznej regulacji napięcia
+							   
 				PSMData[0].Set.Data.ManualMode =
 					PSMData[1].Set.Data.ManualMode = false;
-
-				// Odblokowanie ekranu
 				KS0108LCD_BlockScreen(false);
-
-				// Zmiana ekranu
+				
 				CurrentScreen = MS_SET_VALUES;
 
-			// --->Widok zadanego napięcia i natężenia prądu
+			// --->View of name of set voltage and current
 			case MS_SET_VALUES:
-				// Napięcie kanału #1
+				// Channel #1 voltage
 				if (PSMData[0].Set.Data.Voltage != Settings.SetVoltage[0] ||
 				   (EditIndex == 1 && IsCursorToggled) ||
 					EditIndex != 1 ||
@@ -2110,7 +2049,7 @@ void MenuHandler(void)
 												 true));
 				}
 
-				// Napięcie kanału #2
+				// Channel #2 voltage
 				if (PSMData[1].Set.Data.Voltage != Settings.SetVoltage[1] ||
 					(EditIndex == 3 && IsCursorToggled) ||
 					EditIndex != 3 ||
@@ -2133,7 +2072,7 @@ void MenuHandler(void)
 												 true));
 				}
 
-				// Natężenie prądu kanału #1
+				// Channel #1 current
 				if (PSMData[0].Set.Data.Current != Settings.SetCurrent[0] ||
 				   (EditIndex == 2 && IsCursorToggled) ||
 					EditIndex != 2 ||
@@ -2156,7 +2095,7 @@ void MenuHandler(void)
 											PSMData[0].Set.Data.Current));
 				}
 
-				// Natężenie prądu kanału #2
+				// Channel #2 current
 				if (PSMData[1].Set.Data.Current != Settings.SetCurrent[1] ||
 				   (EditIndex == 4 && IsCursorToggled) ||
 					EditIndex != 4 ||
@@ -2181,28 +2120,23 @@ void MenuHandler(void)
 
 				break;
 
-			// --->Widok nazwy ekranu zadanych wartości PWM
+			// --->View of name of PWM set values
 			case MS_SCREEN_SET_PWM:
-				// Przygotowanie ekranu
 				PrepareScreen();
 				PutTextBlock_P((TextBlock_t*)&PART_Ch1LowerUnit, 
 							   GetCaption(CI_VOLTAGE_UNIT));
 				PutTextBlock_P((TextBlock_t*)&PART_Ch2LowerUnit, 
 							   GetCaption(CI_VOLTAGE_UNIT));
 
-				// Wybranie trybu manualnego regulacji napięcia
 				PSMData[0].Set.Data.ManualMode =
 					PSMData[1].Set.Data.ManualMode = true;
-
-				// Odblokowanie ekranu
 				KS0108LCD_BlockScreen(false);
-
-				// Zmiana ekranu
+				
 				CurrentScreen = MS_SET_PWM;
 
-			// --->Widok zadanych wartości PWM
+			// --->View of set PWM values
 			case MS_SET_PWM:
-				// Zmierzone napięcie kanału #1
+				// Measured channel #1 voltage
 				if (LastValues[0] != PSMData[0].Get.Data.Voltage ||
 					LastValues[2] != PSMData[0].ConnReg.IsConnected)
 				{
@@ -2216,7 +2150,7 @@ void MenuHandler(void)
 							NoConnStr);
 				}
 
-				// Zmierzone napięcie kanału #2
+				// Measured channel #2 voltage
 				if (LastValues[1] != PSMData[1].Get.Data.Voltage ||
 					LastValues[3] != PSMData[1].ConnReg.IsConnected)
 				{
@@ -2230,7 +2164,7 @@ void MenuHandler(void)
 								NoConnStr);
 				}
 
-				// Zadana wartość PWM kanału #1
+				// Set PWM values for channel #1
 				if (PSMData[0].Set.Data.Voltage != Settings.SetPWM[0] ||
 				   (EditIndex == 1 && IsCursorToggled) ||
 					EditIndex != 1 ||
@@ -2253,7 +2187,7 @@ void MenuHandler(void)
 											PSMData[0].Set.Data.Voltage));
 				}
 
-				// Zadana wartość PWM kanału #2
+				// Set PWM values of channel #2
 				if (PSMData[1].Set.Data.Voltage != Settings.SetPWM[1] ||
 				   (EditIndex == 2 && IsCursorToggled) ||
 					EditIndex != 2 ||
@@ -2278,9 +2212,8 @@ void MenuHandler(void)
 
 				break;
 
-			// --->Widok nazwy ekranu temperatur
+			// --->View of name of te,peratures screen
 			case MS_SCREEN_TEMPERATURES:
-				// Przygotowywanie ekranu
 				PrepareScreen();
 				PutTextBlock(&PART_Ch1LowerValue, EmptyString);
 				PutTextBlock(&PART_Ch2LowerValue, EmptyString);
@@ -2295,16 +2228,14 @@ void MenuHandler(void)
 				PutTextBlock_P((TextBlock_t*)&PART_CenterLabel,
 							   GetCaption(CI_MB_TEMP_LABEL));
 				PutLine_P((Line_t*)&PART_LowerSeparator2);
-
-				// Odblokowanie ekranu
+				
 				KS0108LCD_BlockScreen(false);
-
-				// Zmiana ekranu
+				
 				CurrentScreen = MS_TEMPERATURES;
 
-			// --->Widok temperatur stabilizatorów
+			// --->View of regulator temperatures
 			case MS_TEMPERATURES:
-				// Temperatura płyty głównej
+				// Main board
 				if (LastValues[0] != MainBoardTemp)
 				{
 					LastValues[0] = MainBoardTemp;
@@ -2314,7 +2245,7 @@ void MenuHandler(void)
 											  MainBoardTemp % 10));
 				}
 
-				// Temperatura kanału #1
+				// Channel #1
 				if (LastValues[1] != PSMData[0].Get.Data.Temperature ||
 					LastValues[4] != PSMData[0].ConnReg.IsConnected)
 				{
@@ -2329,7 +2260,7 @@ void MenuHandler(void)
 									 NoConnStr);
 				}
 
-				// Temperatura kanału #2
+				// Channel #2
 				if (LastValues[2] != PSMData[1].Get.Data.Temperature ||
 					LastValues[5] != PSMData[1].ConnReg.IsConnected)
 				{
@@ -2346,9 +2277,8 @@ void MenuHandler(void)
 
 				break;
 
-			// --->Widok nazwy ekranu wartości zmierzonych
+			// --->View of name of measured values screen
 			case MS_SCREEN_MEASURED_VALUES:
-				// Przygotowywanie ekranu
 				PrepareScreen();
 				PutTextBlock_P((TextBlock_t*)&PART_Ch1BiggerUnit,
 							   GetCaption(CI_VOLTAGE_UNIT));
@@ -2358,16 +2288,13 @@ void MenuHandler(void)
 							   GetCaption(CI_CURRENT_UNIT));
 				PutTextBlock_P((TextBlock_t*)&PART_Ch2LowerUnit, 
 							   GetCaption(CI_CURRENT_UNIT));
-
-				// Odblokowanie ekranu
+							   
 				KS0108LCD_BlockScreen(false);
-
-				// Zmiana ekranu
 				CurrentScreen = MS_MEASURED_VALUES;
 
-			// --->Widok wartości zmierzonych
+			// --->View of measured values
 			case MS_MEASURED_VALUES:
-				// Zmierzone napięcie kanału #1
+				// Channel #1 voltage
 				if (LastValues[0] != PSMData[0].Get.Data.Voltage ||
 					LastValues[4] != PSMData[0].ConnReg.IsConnected)
 				{
@@ -2380,7 +2307,7 @@ void MenuHandler(void)
 							NoConnStr);
 				}
 
-				// Zmierzone napięcie kanału #2
+				// Channel #2 voltage
 				if (LastValues[1] != PSMData[1].Get.Data.Voltage ||
 					LastValues[5] != PSMData[1].ConnReg.IsConnected)
 				{
@@ -2393,7 +2320,7 @@ void MenuHandler(void)
 							NoConnStr);
 				}
 
-				// Zmierzone natężenie prądu kanału #1
+				// Channel #1 current
 				if (LastValues[2] != PSMData[0].Get.Data.Current ||
 					LastValues[4] != PSMData[0].ConnReg.IsConnected)
 				{
@@ -2406,7 +2333,7 @@ void MenuHandler(void)
 									 NoConnStr);
 				}
 
-				// Zmierzone natężenie prądu kanału #2
+				// Channel #2 current
 				if (LastValues[3] != PSMData[1].Get.Data.Current ||
 					LastValues[5] != PSMData[1].ConnReg.IsConnected)
 				{
@@ -2421,20 +2348,15 @@ void MenuHandler(void)
 
 				break;
 
-			// --->Widok nazwy ekranu mocy/rezystancji
+			// --->View of name of power/resistance screen
 			case MS_SCREEN_POWER_RESISTANCE:
-				// Przygotowywanie ekranu
 				PrepareScreen();
-
-				// Odblokowanie ekranu
 				KS0108LCD_BlockScreen(false);
-
-				// Zmiana ekranu
 				CurrentScreen = MS_POWER_RESISTANCE;
 
-			// --->Widok mocy/rezystancji
+			// --->View of power/resistance
 			case MS_POWER_RESISTANCE:
-				// Moc kanału #1
+				// Channel #1 power
 				if (LastValues[0] != PSMData[0].ProcessedData.Filtered.Power ||
 					LastValues[4] != PSMData[0].ConnReg.IsConnected)
 				{
@@ -2449,7 +2371,7 @@ void MenuHandler(void)
 								   GetCaption(unit));
 				}
 
-				// Moc kanału #2
+				// Channel # power
 				if (LastValues[1] != PSMData[1].ProcessedData.Filtered.Power ||
 					LastValues[5] != PSMData[1].ConnReg.IsConnected)
 				{
@@ -2464,7 +2386,7 @@ void MenuHandler(void)
 								   GetCaption(unit));
 				}
 
-				// Rezystancja kanału #1
+				// Channel #1 resistance
 				if (LastValues[2] !=
 					PSMData[0].ProcessedData.Filtered.Resistance ||
 					LastValues[4] != PSMData[0].ConnReg.IsConnected)
@@ -2481,7 +2403,7 @@ void MenuHandler(void)
 					PutTextBlock_P(&PART_Ch1LowerUnit, GetCaption(unit));
 				}
 
-				// Rezystancja kanału #2
+				// Channel # resistance
 				if (LastValues[3] !=
 					PSMData[1].ProcessedData.Filtered.Resistance ||
 					LastValues[5] != PSMData[1].ConnReg.IsConnected)
@@ -2500,20 +2422,14 @@ void MenuHandler(void)
 
 				break;
 
-			// --->Widok nazwy ekranu ustawień dźwięku
+			// --->View of name of sound settings screen
 			case MS_SCREEN_SOUND:
-				// Przygotowywanie ekranu
 				PrepareScreen();
-
-				// Odblokowanie ekranu
 				KS0108LCD_BlockScreen(false);
-
-				// Zmiana ekranu
 				CurrentScreen = MS_SOUND_SETTINGS;
 
-			// --->Widok ustawień dźwięku
+			// --->View of sound settings
 			case MS_SOUND_SETTINGS:
-				// Wyświetlanie nazwy języka menu
 				if (LastValues[0] != Settings.AudioMute)
 				{
 					LastValues[0] = Settings.AudioMute;
@@ -2524,20 +2440,17 @@ void MenuHandler(void)
 
 				break;
 
-			// --->Widok nazwy ekranu ustawień wyświetlacza
+			// --->View of name of display settings screen
 			case MS_SCREEN_DISPLAY:
 				PrepareScreen();
 				LastValues[0] = -1;
 				PART_SettingsBar.Maximum = DISP_BACKL_STEPS - 1;
 				PART_SettingsBar.Minimum = 0;
-
-				// Odblokowanie ekranu
+				
 				KS0108LCD_BlockScreen(false);
-
-				// Zmiana ekranu
 				CurrentScreen = MS_DISPLAY_SETTINGS;
 
-			// --->Widok ustawień wyświetlacza
+			// --->View of display settings
 			case MS_DISPLAY_SETTINGS:
 				if (LastValues[0] != Settings.LcdBrightness)
 				{
@@ -2552,20 +2465,14 @@ void MenuHandler(void)
 
 				break;
 
-			// --->Widok nazwy ekranu ustawień języka
+			// --->View of name of language settings screen
 			case MS_SCREEN_LANGUAGE:
-				// Przygotowywanie ekranu
 				PrepareScreen();
-
-				// Odblokowanie ekranu
 				KS0108LCD_BlockScreen(false);
-
-				// Zmiana ekranu
 				CurrentScreen = MS_LANGUAGE_SETTINGS;
 
-			// --->Widok ustawień wyświetlacza
+			// --->View of language settings
 			case MS_LANGUAGE_SETTINGS:
-				// Wyświetlanie nazwy języka menu
 				if (LastValues[0] != Settings.Language)
 				{
 					LastValues[0] = Settings.Language;
@@ -2575,9 +2482,8 @@ void MenuHandler(void)
 
 				break;
 
-			// --->Widok nazwy ekranu wartości zmierzonych ADC
+			// --->View of name of measured ADC values screen
 			case MS_SCREEN_ADC_VALUES:
-				// Przygotowywanie ekranu
 				PrepareScreen();
 				PutTextBlock_P((TextBlock_t*)&PART_Ch1BiggerUnit,
 							   GetCaption(CI_VOLTAGE_PWM_UNIT));
@@ -2587,16 +2493,13 @@ void MenuHandler(void)
 							   GetCaption(CI_CURRENT_PWM_UNIT));
 				PutTextBlock_P((TextBlock_t*)&PART_Ch2LowerUnit, 
 							   GetCaption(CI_CURRENT_PWM_UNIT));
-
-				// Odblokowanie ekranu
+							   
 				KS0108LCD_BlockScreen(false);
-
-				// Zmiana ekranu
 				CurrentScreen = MS_ADC_VALUES;
 
-			// --->Widok wartości zmierzonych ADC
+			// --->View of measured ADC values
 			case MS_ADC_VALUES:
-				// Wartość ADC napięcia kanału #1
+				// Channel #1 voltage ADC
 				if (LastValues[0] != PSMData[0].Get.Data.VoltageADC ||
 					LastValues[4] != PSMData[0].ConnReg.IsConnected)
 				{
@@ -2609,7 +2512,7 @@ void MenuHandler(void)
 							NoConnStr);
 				}
 
-				// Wartość ADC napięcia kanału #2
+				// Channel #2 voltage ADC
 				if (LastValues[1] != PSMData[1].Get.Data.VoltageADC ||
 					LastValues[5] != PSMData[1].ConnReg.IsConnected)
 				{
@@ -2622,7 +2525,7 @@ void MenuHandler(void)
 								NoConnStr);
 				}
 
-				// Wartość ADC natężenia prądu kanału #1
+				// Channel #1 current ADC
 				if (LastValues[2] != PSMData[0].Get.Data.CurrentADC ||
 					LastValues[4] != PSMData[0].ConnReg.IsConnected)
 				{
@@ -2636,7 +2539,7 @@ void MenuHandler(void)
 							NoConnStr);
 				}
 
-				// Wartość ADC natężenia prądu kanału #2
+				// Channel #2 current ADC
 				if (LastValues[3] != PSMData[1].Get.Data.CurrentADC ||
 					LastValues[5] != PSMData[1].ConnReg.IsConnected)
 				{
@@ -2652,99 +2555,72 @@ void MenuHandler(void)
 
 				break;
 
-			// --->Widok nazwy ekranu ustawień ogólnych
+			// --->View of name of general settings screen
 			case MS_SCREEN_GENERAL_SETTINGS:
-				// Przygotowywanie ekranu
 				PrepareScreen();
 				PutImage_P((uint8_t*)&GeneralSettingsIcon, 53, 25);
-
-				// Odblokowanie ekranu
 				KS0108LCD_BlockScreen(false);
-
-				// Zmiana ekranu
 				CurrentScreen = MS_GENERAL_SETTINGS;
 
 				break;
 
-			// --->Widok nazwy ekranu ustawień zasilacza
+			// --->View of name of power supply settings screen
 			case MS_SCREEN_PS_SETTINGS:
-				// Przygotowywanie ekranu
 				PrepareScreen();
 				PutImage_P((uint8_t*)&PSsettingsIcon, 53, 25);
-
-				// Odblokowanie ekranu
 				KS0108LCD_BlockScreen(false);
-
-				// Zmiana ekranu
 				CurrentScreen = MS_PS_SETTINGS;
 
 				break;
 
-			// --->Widok nazwy ekranu ustawień
+			// --->View of name of settings screen
 			case MS_SCREEN_SETTINGS:
-				// Przygotowywanie ekranu
 				PrepareScreen();
 				PutImage_P((uint8_t*)&SettingsIcon, 49, 12);
-
-				// Odblokowanie ekranu
 				KS0108LCD_BlockScreen(false);
-
-				// Zmiana ekranu
 				CurrentScreen = MS_SETTINGS;
 
 				break;
 
-		   // --->Widok nazwy ekranu informacji o programie
+		   // --->View of name of about screen
 			case MS_SCREEN_ABOUT:
-				// Przygotowywanie ekranu
 				PrepareScreen();
 				PutImage_P((uint8_t*)&AboutIcon, 49, 12);
-
-				// Odblokowanie ekranu
 				KS0108LCD_BlockScreen(false);
-
-				// Zmiana ekranu
 				CurrentScreen = MS_ABOUT;
 
 				break;
 
-			// --->Widok ustawień ogólnych
+			// --->View of general settings screen
 			case MS_GENERAL_SETTINGS:
 
-				// --->Widok ustawień zasilacza
+				// --->View of power supply settings screen
 			case MS_PS_SETTINGS:
 
-			// --->Widok informacji o programie
+			// --->View of about screen
 			case MS_ABOUT:
 
-			 // --->Widok ekranu ustawień programu
+			 // --->View of settings screen
 			case MS_SETTINGS:
 
 				break;
 
-			// --->Widok nazwy ekranu ustawień łagodnego startu kanału #1
+			// --->View of name of soft-start settings screen for channel #1
 			case MS_SCREEN_SS1_SETTINGS:
-				// Przygotowywanie ekranu
 				PrepareScreen();
 				PutTextBlock_P(&PART_SettingsCenterUnit,
 							   GetCaption(CI_SOFT_START_UNIT));
-			
-				// Odblokowanie ekranu
 				KS0108LCD_BlockScreen(false);
-
-				// Zmiana ekranu
 				CurrentScreen = MS_SS1_SETTINGS;
 
-			// --->Widok ustawień łagodnego startu kanału #1
+			// --->View of soft-start settings screen for channel #1
 			case MS_SS1_SETTINGS:
-				// Wyświetlanie czasu łagodnego startu
 				if (LastValues[0] != Settings.SoftStartTime[0])
 				{
 					LastValues[0] =
 						PSMData[0].Set.Data.SoftStartTime =
 							Settings.SoftStartTime[0];
-
-					// Nawigatory
+							
 					PART_UpNavigator1.TextColor =
 						Settings.SoftStartTime[0] < SOFT_START_TIME_MAX ?
 						SC_BLACK : SC_WHITE;
@@ -2753,8 +2629,7 @@ void MenuHandler(void)
 						SC_BLACK : SC_WHITE;
 					PutTextBlock(&PART_UpNavigator1, (uint8_t*)"\xEC");
 					PutTextBlock(&PART_DownNavigator, (uint8_t*)"\xED");
-				
-					// Parametr
+					
 					PutTextBlock_P(&PART_SettingsCenterValue2,
 								   GetCaption(CI_INT_VALUE,
 											  Settings.SoftStartTime[0]));
@@ -2762,29 +2637,21 @@ void MenuHandler(void)
 
 				break;
 
-			// --->Widok nazwy ekranu ustawień łagodnego startu kanału #2
+			// --->View of name of soft-start settings screen for channel #2
 			case MS_SCREEN_SS2:
-				// Przygotowywanie ekranu
 				PrepareScreen();
 				PutTextBlock_P(&PART_SettingsCenterUnit,
 							   GetCaption(CI_SOFT_START_UNIT));
-
-				// Odblokowanie ekranu
 				KS0108LCD_BlockScreen(false);
-
-				// Zmiana ekranu
 				CurrentScreen = MS_SS2_SETTINGS;
 
-			// --->Widok ustawień łagodnego startu kanału #2
+			// --->View of soft-start settings screen for channel #2
 			case MS_SS2_SETTINGS:
-				// Wyświetlanie czasu łagodnego startu
 				if (LastValues[0] != Settings.SoftStartTime[1])
 				{
 					LastValues[0] =
 						PSMData[1].Set.Data.SoftStartTime =
 							Settings.SoftStartTime[1];
-
-					// Nawigatory
 					PART_UpNavigator1.TextColor =
 						Settings.SoftStartTime[1] < SOFT_START_TIME_MAX ?
 						SC_BLACK : SC_WHITE;
@@ -2793,8 +2660,7 @@ void MenuHandler(void)
 						SC_BLACK : SC_WHITE;
 					PutTextBlock(&PART_UpNavigator1, (uint8_t*)"\xEC");
 					PutTextBlock(&PART_DownNavigator, (uint8_t*)"\xED");
-				
-					// Parametr
+					
 					PutTextBlock_P(&PART_SettingsCenterValue2,
 								   GetCaption(CI_INT_VALUE,
 											  Settings.SoftStartTime[1]));
@@ -2802,9 +2668,8 @@ void MenuHandler(void)
 
 				break;
 
-			// --->Widok nazwy ekranu informacji o komunikacji
+			// --->View of name of communication info screen
 			case MS_SCREEN_COMMUNICATION:
-				// Przygotowywanie ekranu
 				PrepareScreen();
 				PutTextBlock_P(&PART_CommInfoLine_1,
 							   GetCaption(CI_DATA_RATE));
@@ -2815,14 +2680,11 @@ void MenuHandler(void)
 				PutTextBlock_P(&PART_CommInfoLine_3_1,
 							   GetCaption(CI_TX_DATA, PSMC_SENT_DATA_SIZE));
 				LastValues[0] = LastValues[1] = -1;
-
-				// Odblokowanie ekranu
+				
 				KS0108LCD_BlockScreen(false);
-
-				// Zmiana ekranu
 				CurrentScreen = MS_COMMUNICATION;
 
-			// --->Widok ekranu informacji o komunikacji
+			// --->View of communication info screen
 			case MS_COMMUNICATION:
 				if (LastValues[0] != CommunicationSpeed.RxDataRate)
 				{
@@ -2841,9 +2703,8 @@ void MenuHandler(void)
 
 				break;
 
-			// --->Widok nazwy ekranu informacji o oprogramowaniu
+			// --->View of name of firmware information screen
 			case MS_SCREEN_FIRMWARE:
-				// Przygotowywanie ekranu
 				PrepareScreen();
 				PutTextBlock_P(&PART_FirmwareVersion,
 							   GetCaption(CI_MB_VERSION, FIRMWARE_VERSION));
@@ -2853,33 +2714,24 @@ void MenuHandler(void)
 										  GetCompileMonth(),
 										  GetCompileYear(),
 										  GetCompileHour(),
-										  GetCompileMinute()));
-
-				// Odblokowanie ekranu
+										  GetCompileMinute()));										  
 				KS0108LCD_BlockScreen(false);
-
-				// Zmiana ekranu
 				CurrentScreen = MS_FIRMWARE;
 
-			// --->Widok ekranu informacji o oprogramowaniu
+			// --->View of firmware information screen
 			case MS_FIRMWARE:
 
 				break;
 			
-			// --->Widok nazwy ekranu informacji o oprogramowaniu modułu #1
+			// --->View of name of module #1 firmware information screen
 			case MS_SCREEN_FIRMWARE1:
-				// Przygotowywanie ekranu
 				PrepareScreen();
-
-				// Odblokowanie ekranu
 				KS0108LCD_BlockScreen(false);
-
-				// Zmiana ekranu
 				CurrentScreen = MS_FIRMWARE1;
 				
 				break;
 
-			// --->Widok ekranu informacji o oprogramowaniu modułu
+			// --->View of module #1 and #2 firmware information screen
 			case MS_FIRMWARE1:
 			case MS_FIRMWARE2:
 				if (LastValues[0] !=
@@ -2924,40 +2776,28 @@ void MenuHandler(void)
 
 				break;
 			
-			// --->Widok nazwy ekranu informacji o oprogramowaniu modułu #2
+			// --->View of name of module #2 firmware information screen
 			case MS_SCREEN_FIRMWARE2:
-				// Przygotowywanie ekranu
 				PrepareScreen();
-			
-				// Odblokowanie ekranu
 				KS0108LCD_BlockScreen(false);
-
-				// Zmiana ekranu
 				CurrentScreen = MS_FIRMWARE2;
 				
 				break;
 			
-			// --->Widok nazwy ekranu ustawień maksymalnej temperatury
+			// --->View of name of max. temperature settings screen
 			case MS_SCREEN_MAX_TEMP:
-				// Przygotowywanie ekranu
 				PrepareScreen();
 				PutTextBlock_P(&PART_SettingsCenterUnit,
 							   GetCaption(CI_TEMPERATURE_UNIT));
-			
-				// Odblokowanie ekranu
 				KS0108LCD_BlockScreen(false);
-
-				// Zmiana ekranu
 				CurrentScreen = MS_MAX_TEMP_SETTINGS;
 		
-			// --->Widok ekranu ustawień maksymalnej temperatury	
+			// --->View of max. temperature settings screen
 			case MS_MAX_TEMP_SETTINGS:
-				// Wyświetlanie maksymalnej temperatury
 				if (LastValues[0] != Settings.MaxTemperature)
 				{
 					LastValues[0] = Settings.MaxTemperature;
-
-					// Nawigatory
+					
 					PART_UpNavigator1.TextColor =
 						Settings.MaxTemperature < MAX_TEMP_MAX ?
 						SC_BLACK : SC_WHITE;
@@ -2974,27 +2814,20 @@ void MenuHandler(void)
 			
 				break;
 			
-			// --->Widok nazwy ekranu ustawień histerezy temperatury
+			// --->View of name of temperature hysteresis settings screen
 			case MS_SCREEN_TEMP_HYSTERESIS:
-				// Przygotowywanie ekranu
 				PrepareScreen();
 				PutTextBlock_P((TextBlock_t*)&PART_SettingsCenterUnit,
 							   GetCaption(CI_TEMPERATURE_UNIT));
-		
-				// Odblokowanie ekranu
 				KS0108LCD_BlockScreen(false);
-
-				// Zmiana ekranu
 				CurrentScreen = MS_TEMP_HYSTERESIS_SETTINGS;
 		
-			// --->Widok ekranu ustawień histerezy temperatury
+			// --->View of temperature hysteresis settings screen
 			case MS_TEMP_HYSTERESIS_SETTINGS:
-				// Wyświetlanie histerezy temperatury
 				if (LastValues[0] != Settings.TempHisteresis)
 				{
 					LastValues[0] = Settings.TempHisteresis;
-
-					// Nawigatory
+					
 					PART_UpNavigator1.TextColor =
 						Settings.TempHisteresis < TEMP_HISTERESIS_MAX ?
 						SC_BLACK : SC_WHITE;
@@ -3011,20 +2844,14 @@ void MenuHandler(void)
 		
 				break;
 			
-			// --->Widok nazwy ekranu ustawień zabezpieczenia temperaturowego
+			// --->View of name of temperature protection settings screen
 			case MS_SCREEN_TEMP_PROTECTION:
-				// Przygotowywanie ekranu
 				PrepareScreen();
-		
-				// Odblokowanie ekranu
 				KS0108LCD_BlockScreen(false);
-
-				// Zmiana ekranu
 				CurrentScreen = MS_TEMP_PROTECTION_SETTINGS;
 		
-			// --->Widok ekranu ustawień zabezpieczenia temperaturowego
+			// --->View of temperature protection settings screen
 			case MS_TEMP_PROTECTION_SETTINGS:
-				// Wyświetlanie informacji o zabezpieczeniu termicznym
 				if (LastValues[0] != Settings.IsTempProtectionEnabled)
 				{
 					LastValues[0] = Settings.IsTempProtectionEnabled;
@@ -3039,4 +2866,4 @@ void MenuHandler(void)
 	}
 }
 
-/****************** (C) COPYRIGHT 2013 HENIUS **************** KONIEC PLIKU ***/
+/****************** (C) COPYRIGHT 2013 HENIUS **************** END OF FILE ****/

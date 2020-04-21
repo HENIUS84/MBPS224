@@ -4,7 +4,7 @@
  * @author   HENIUS (Paweł Witak)                                      
  * @version  1.1.1                                                         
  * @date     04-04-2011                                                       
- * @brief    Program obsługi modułu zasilacza (plik nagłówkowy)
+ * @brief    Program of supporting power supply module (header file)
  *******************************************************************************
  *
  * <h2><center>COPYRIGHT 2011 HENIUS</center></h2>
@@ -13,35 +13,41 @@
 #ifndef MAIN_H_
 #define MAIN_H_
 
-/* Sekcja include ------------------------------------------------------------*/
+/* Include section -----------------------------------------------------------*/
 
-// --->Pliki systemowe
+// --->System files
 
 #include <stdint.h>
 
-// --->Pliki użytkownika
+// --->User files
 
 #include "Peripherals.h"
 
-/* Sekcja stałych, makr i definicji ------------------------------------------*/
+/* Macros, constants and definitions section ---------------------------------*/
 
-// --->Stałe
+// --->Constants
 
-// Obsługa prescalerów
-/*! Prescaler dla okresu 1 s */
+// Prescalers
+
+/*! Prescaler 1 s */
 #define SYS_PRESC_1s		(1000 / SYS_TIME)	
-/*! Prescaler dla okresu 10 ms */
+/*! Prescaler 10 ms */
 #define SYS_PRESC_10ms		(10 / SYS_TIME)
-/*! Prescaler dla multimetru */
+/*! Prescaler of multimeter */
 #define MULTIMETER_PRESC	(5 / SYS_TIME)
 
-#define START_DELAY			(1000)	/*!< Opóźnienie startu systemu (w ms) */
+#define START_DELAY			(1000)			/*!< System start delay (in ms) */
 
-/* Sekcja deklaracji ---------------------------------------------------------*/
+/* Declaration section -------------------------------------------------------*/
 
-// Funkcja opóźniająca w ms
+/*----------------------------------------------------------------------------*/
+/**
+* @brief    Delay function
+* @param  	delay : delay in ms
+* @retval   None
+*/
 void Wait_ms(uint16_t delay);
 
 #endif 										/* MAIN_H_ */
 
-/******************* (C) COPYRIGHT 2011 HENIUS *************** KONIEC PLIKU ***/
+/******************* (C) COPYRIGHT 2011 HENIUS *************** END OF FILE ****/

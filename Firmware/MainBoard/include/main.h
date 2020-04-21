@@ -4,7 +4,7 @@
   * @author   HENIUS (Paweł Witak)
   * @version  1.1.2
   * @date     15/11/2013
-  * @brief    Główny plik nagłówkowy
+  * @brief    Main program (header file)
   ******************************************************************************
   * 
   * <h2><center>COPYRIGHT 2010 HENIUS</center></h2>
@@ -13,32 +13,38 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-/* Sekcja include ------------------------------------------------------------*/
+/* Include section -----------------------------------------------------------*/
 
-// --->Pliki systemowe
+// --->System files
 #include <avr/io.h>
 
-/* Sekcja stałych, makr i definicji ------------------------------------------*/
+/* Macros, constants and definitions section ---------------------------------*/
 
-// --->Stałe
+// --->Constants
 
-// Obsługa prescalerów
-/*! Prescaler dla okresu 1 s */
+// Prescalers support
+
+/*! Prescaler - 1 s */
 #define SYS_PRESC_1s		(1000 / SYS_TIME)
-/*! Prescaler dla okresu 10 ms */
+/*! Prescaler- 10 ms */
 #define SYS_PRESC_10ms		(10 / SYS_TIME)
-/*! Prescaler dla okresu 5 ms */
+/*! Prescaler - 5 ms */
 #define SYS_PRESC_5ms		(5 / SYS_TIME)
-/*! Prescaler dla okresu 100 ms */
+/*! Prescaler - 100 ms */
 #define SYS_PRESC_100ms		(100 / SYS_TIME)
-/*! Prescaler dla timera komunikacji z modułami zasilacza */
+/*! Prescaler modules communication */
 #define PSM_PRESC			(20 / SYS_TIME)
 
-/* Sekcja deklaracji ---------------------------------------------------------*/
+/* Declaration section -------------------------------------------------------*/
 
-// Funkcja opóźniająca w ms
+/*----------------------------------------------------------------------------*/
+/**
+* @brief    Delay function
+* @param  	delay : delay in ms
+* @retval   None
+*/
 void Wait_ms(uint16_t delay);
 
 #endif								/* MAIN_H */
 
-/******************* (C) COPYRIGHT 2010 HENIUS *************** KONIEC PLIKU ***/
+/******************* (C) COPYRIGHT 2010 HENIUS *************** END OF FILE ****/

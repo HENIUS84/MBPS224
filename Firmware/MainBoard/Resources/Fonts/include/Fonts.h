@@ -4,7 +4,7 @@
  * @author   HENIUS (Paweł Witak)                                              
  * @version  1.1.1                                                          
  * @date     22/09/2011                                                        
- * @brief    Deklaracje czcionek (plik nagłówkowy)                                 
+ * @brief    Fonts declaration (header file)                                 
  *******************************************************************************
  *
  * <h2><center>COPYRIGHT 2011 HENIUS</center></h2>
@@ -13,27 +13,24 @@
 #ifndef  FONTS_H_
 #define  FONTS_H_
 
-/* Sekcja include ------------------------------------------------------------*/
+/* Include section -----------------------------------------------------------*/
 
-// --->Pliki systemowe
+// --->System files
 
 #include <stdbool.h>
 
-// --->Pliki użytkownika
+// --->User files
 
 #include "GraphLib.h"
 
-/* Sekcja stałych, makr i definicji ------------------------------------------*/
+/* Declaration section -------------------------------------------------------*/
 
-/* Sekcja deklaracji ---------------------------------------------------------*/
-
-extern Font_t MicrosoftSansSerif7;	// Czcionka Microsoft Sans Serif 7		
-extern Font_t MicrosoftSansSerif9;	// Czcionka Microsoft Sans Serif 9
-// Czcionka Microsoft Sans Serif 7
-extern Font_t MicrosoftSansSerif8Bold;
-// Czcionka Microsoft Sans Serif 11 Bold
-extern Font_t MicrosoftSansSerif11Bold;	
+extern Font_t MicrosoftSansSerif7;	        /*!< Microsoft Sans Serif 7 font */	
+extern Font_t MicrosoftSansSerif9;	        /*!< Microsoft Sans Serif 9 font */
+extern Font_t MicrosoftSansSerif8Bold;      /*!< Microsoft Sans Serif 7 font */
+/*! Microsoft Sans Serif 11 Bold font */
+extern Font_t MicrosoftSansSerif11Bold;	   
 
 #endif								/* FONTS_H_ */
 
-/******************* (C) COPYRIGHT 2011 HENIUS *************** KONIEC PLIKU ***/
+/******************* (C) COPYRIGHT 2011 HENIUS *************** END OF FILE ****/

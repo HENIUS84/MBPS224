@@ -4,39 +4,39 @@
  * @author   HENIUS (Paweł Witak)                                      
  * @version  1.1.1                                                         
  * @date     03-04-2011                                                       
- * @brief    Program obsługi modułu zasilacza
+ * @brief    Program of supporting power supply module
  * @mainpage
- *           \section Intro Opis projektu
- *           To jest projekt obsługi modułu zasilacza, który jest częścią
- *           projektu zasilacza sterowanego mikrokontrolerem MBPS224.
+ *           \section Intro Project description
+ *           This project is for power supply module which is part of power
+ *           supply project MBPS224.
  *
- *           Urządzenie składa się z dwóch głównych elementów:
- *           - płyty głównej,
- *           - modułu zasilacza.
+ *           Device consists of two main parts:
+ *           - Main Board,
+ *           - Power Supply Module.
  *
- *           Zadaniem modułu zasilacza jest:
- *           - regulacja napięcia i natężenia prądu,
- *           - pomiar temperatury stabilizatora,
- *           - pomiar napięcia i natężenia prądu,
- *           - komunikacja z płytą główną za pomocą izolowanej magistrali I2C.
- *           \section DI Lista urządzeń
- *           Niniejszy projekt został napisany dla mikrokontrolera ATmega32.
+ *           The responsibilities of Power Supply Module are:
+ *           - voltage and current regulation,
+ *           - temperature measurement of voltage regulator,
+ *           - voltage and current measurements,
+ *           - communication with Main Board by isolated I2C bus.
+ *           \section DI Devices list
+ *    		This project was developed for ATmega32.
  *
  ******************************************************************************
  *
  * <h2><center>COPYRIGHT 2011 HENIUS</center></h2>
  */
 
-/* Sekcja include ------------------------------------------------------------*/
+/* Include section -----------------------------------------------------------*/
 
-// --->Pliki systemowe
+// --->System files
 
 #include <stdio.h>
 #include <avr/io.h>
 #include <stdint.h>
 #include <avr/interrupt.h>
 
-// --->Pliki użytkownika
+// --->User files
 
 #include "Tasks.h"
 #include "main.h"
@@ -46,35 +46,35 @@
 #include "Debug.h"
 #include "Hardware.h"
 
-/* Sekcja zmiennych ----------------------------------------------------------*/
+/* Variable section ----------------------------------------------------------*/
 
-/*! Zmienna na potrzeby realizacji funkcji opóźniającej */
-volatile int16_t DelayCounter = 0;
+volatile int16_t DelayCounter = 0;			/*! Variable for delay function */
 
-/* Sekcja funkcji ------------------------------------------------------------*/
+/* Function section ----------------------------------------------------------*/
 
 /*----------------------------------------------------------------------------*/
 /**
- * @brief    Główna funkcja programu
- * @param    Brak
- * @retval   Brak
- */
+* @brief    Main function
+* @param    None
+* @retval   None
+*/
 int main(void)
 {
-	// Inicjalizacja systemu
-	InitPeripherals_();				// Inicjalizacja peryferiów
-	sei();							// Aktywacja przerwań	
-	InitTasks();					// Inicjalizacja zadań		
-	ADC_StartConv();				// Inicjalizacja modułu pomiarowego
+	// --->System initialization
+	
+	InitPeripherals_();
+	sei();	
+	InitTasks();		
+	ADC_StartConv();
 
-	// Aktywacja trybu DEBUG
+	// DEBUG mode is enabled by DIPSWITCH1
 	if (GET_DIPSW(DIPSW1))
 	{
 		SetDebugMode(true);
 		BUZZER_ON();
 	}
 
-	// Główna pętla programu
+	// Main loop
 	while (1);
 
 	return 0;
@@ -82,38 +82,32 @@ int main(void)
 
 /*----------------------------------------------------------------------------*/
 /**
- * @brief    Obsługa przerwania timera opóźnienia (1 ms)
- * @param    Brak
- * @retval   Brak
- */
+* @brief    Timer interrupt handler for delay function reason
+* @param    None
+* @retval   None
+*/
 ISR(TIMER2_COMP_vect)
 {
 	DelayCounter--; 
-	TemperatureTask();			// Zadanie pomiaru temperatury stabilizatora
+	TemperatureTask();
 }
 
 /*----------------------------------------------------------------------------*/
 /**
- * @brief    Obsługa przerwania timera systemowego (1 ms)
- * @param    Brak
- * @retval   Brak
- */
+* @brief    Timer interrupt handler for system timer (1 ms)
+* @param    None
+* @retval   None
+*/
 ISR(TIMER0_COMP_vect)
 {
 	sei();	
-	MainSystemTask();				// Główne zadanie systemowe
-	CtrlTask();						// Zadanie komunikacji z płytą główną	
-	// Zadanie regulacji napięcia i natężenia prądu
+	MainSystemTask();
+	CtrlTask();
 	RegulatorTask();			
-	MultimeterTask();				// Zadanie obsługi pomiarów
+	MultimeterTask();
 }
 
 /*----------------------------------------------------------------------------*/
-/**
- * @brief    Funkcja opóźniająca
- * @param  	 delay : opóźnienie w ms
- * @retval   Brak
- */
 void Wait_ms(uint16_t delay)
 {
 	DelayCounter = delay;
@@ -121,4 +115,4 @@ void Wait_ms(uint16_t delay)
 	while (DelayCounter > 0);
 }
 
-/******************* (C) COPYRIGHT 2011 HENIUS *************** KONIEC PLIKU ***/
+/******************* (C) COPYRIGHT 2011 HENIUS *************** END OF FILE ****/

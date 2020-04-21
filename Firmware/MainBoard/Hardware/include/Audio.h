@@ -4,7 +4,7 @@
  * @author   HENIUS (Paweł Witak)
  * @version  1.1.1
  * @date     30-03-2012
- * @brief    Obsługa generowania dźwięku (plik nagłówkowy)
+ * @brief    Implementation of sound generator (header file)
  *******************************************************************************
  *
  * <h2><center>COPYRIGHT 2012 HENIUS</center></h2>
@@ -13,44 +13,62 @@
 #ifndef AUDIO_H_
 #define AUDIO_H_
 
-/* Sekcja include ------------------------------------------------------------*/
+/* Include section -----------------------------------------------------------*/
 
-// --->Pliki systemowe
+// --->System files
 
 #include <avr/io.h>
 #include <stdbool.h>
 
-/* Sekcja stałych, makr i definicji ------------------------------------------*/
+/* Macros, constants and definitions section ---------------------------------*/
 
-// Wyjście dźwięku
-#define AUDIO_PORT	   		(PORTB) /*!< Rejestr wyjściowy AUDIO */
-#define AUDIO_DDR       	(DDRB)  /*!< Rejestr kierunkowy AUDIO */
-#define AUDIO_PIN       	(PINB)  /*!< Rejestr wejściowy AUDIO */
-#define AUDIO				(_BV(5))/*!< Maska pinu AUDIO */
+// Sound output
+#define AUDIO_PORT	   		(PORTB) /*!< Out register for AUDIO */
+#define AUDIO_DDR       	(DDRB)  /*!< Direction register for AUDIO */
+#define AUDIO_PIN       	(PINB)  /*!< Output register for AUDIO */
+#define AUDIO				(_BV(5))/*!< Bit mask of AUDIO */
 
-#define FREQ_REGISTER		(OCR1A)	/*!< Rejestr częstotliwości */
+#define FREQ_REGISTER		(OCR1A)	/*!< Frequency register */
 
 // Prescaler
-#define AUDIO_PRESC_0		(0)		/*!< Brak sygnału dla timera */
+#define AUDIO_PRESC_0		(0)		/*!< No signal for timer */
 #define AUDIO_PRESC_1		(1)     /*!< Prescaler /1 */
 #define AUDIO_PRESC_8		(2)     /*!< Prescaler /8 */
 #define AUDIO_PRESC_64		(3)     /*!< Prescaler /64 */
 #define AUDIO_PRESC_256		(4)     /*!< Prescaler /256 */
 #define AUDIO_PRESC_1024	(5)     /*!< Prescaler /1024 */
-#define AUDIO_PRESC			(64)	/*!< Dzielnik częstotliwości */
-/*! Wartość bitów CS (prescalera) timera audio */
+#define AUDIO_PRESC			(64)	/*!< Frequency prescaler */
+/*! CS bits value (prescaler) for Audio timer */
 #define AUDIO_PRESC_CS		(AUDIO_PRESC_64)
 
-/* Sekcja deklaracji ---------------------------------------------------------*/
+/* Declaration section -------------------------------------------------------*/
 
-// --->Funkcje
-// Inicjalizacja obsługi audio
+// --->Functions
+
+/*----------------------------------------------------------------------------*/
+/**
+ * @brief    Audio support initialization
+ * @param    cpuFreq : CPU frequency in MHz
+ * @retval   None
+ */
 void Audio_Init(uint32_t cpuFreq);
-// Ustawianie częstotliwości
+
+/*----------------------------------------------------------------------------*/
+/**
+ * @brief    Sets frequency
+ * @param    freq : frequency in Hz
+ * @retval   None
+ */
 void Audio_SetFreq(uint16_t freq);
-// Zatrzymanie generowania dźwięku
+
+/*----------------------------------------------------------------------------*/
+/**
+ * @brief    Stops audio
+ * @param    None
+ * @retval   None
+ */
 void Audio_StopSound(void);
 
 #endif								/* AUDIO_H_ */
 
-/******************* (C) COPYRIGHT 2012 HENIUS *************** KONIEC PLIKU ***/
+/******************* (C) COPYRIGHT 2012 HENIUS *************** END OF FILE ****/

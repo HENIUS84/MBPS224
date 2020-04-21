@@ -4,15 +4,15 @@
  * @author   HENIUS (Paweł Witak)
  * @version  1.1.2                                                         
  * @date     01-05-2013
- * @brief    Kontroler transmisji z modułami zasilaczy
+ * @brief    Module connection controller
  *******************************************************************************
  *
  * <h2><center>COPYRIGHT 2013 HENIUS</center></h2>
  */
 
-/* Sekcja include ------------------------------------------------------------*/
+/* Include section -----------------------------------------------------------*/
 
-// --->Pliki systemowe
+// --->System files
 
 #include <avr/pgmspace.h>
 #include <avr/io.h>
@@ -20,7 +20,7 @@
 #include <stdint.h>
 #include <string.h>
 
-// --->Pliki użytkownika
+// --->User files
 
 #include "PSMController.h"
 #include "OWICrc.h"
@@ -29,36 +29,29 @@
 #include "Debug.h"
 #include "Peripherals.h"
 
-/* Sekcja zmiennych ----------------------------------------------------------*/
+/* Variable section ----------------------------------------------------------*/
 
-/*! Stan kontrolera komunikacji z modułami zasilaczy */
 EPSMCState_t PSMCState;	
-I2CMaster_t I2CMasterCtrl =			/*!< Konfiguracja magistrali I2C */
+static I2CMaster_t I2CMasterCtrl =	/*!< I2C bus configuration */
 {
 	.ClockRate    = I2CC_400K,
 	.CpuFrequency = F_CPU
 };
-PSMController_t *CtrlData;			/*!< Dane kontrolera */
-/*! Tablica na odczytane dane */
+PSMController_t *CtrlData;			/*!< Controller data */
+/*! Table with received data */
 uint8_t ReadData[PSMC_READ_DATA_SIZE];
-uint16_t CommunicationTimer;		/*!< Timer komunikacji */	
-uint16_t SpeedmeterTimer;			/*!< Timer pomiaru prędkości transmisji */	
+uint16_t CommunicationTimer;		/*!< Communication timer */	
+uint16_t SpeedmeterTimer;			/*!< Connection speed meter timer */	
 
-/* Sekcja funkcji ------------------------------------------------------------*/
+/* Function section ----------------------------------------------------------*/
 
 /*----------------------------------------------------------------------------*/
-/**
- * @brief    Inicjalizacja kontrolera komunikacji z modułem zasilacza
- * @param    *data : wskaźnik do struktury z danmi kontrolera 
- * @retval   Brak 
- */
 void PSMController_Init(PSMController_t *data)
 {
 	if (data)
 	{
 		CtrlData = data;
 		
-		// Inicjalizacja komunikacji
 		I2CMaster_Init(&I2CMasterCtrl);	
 		PSMCState = -1;	
 		CommunicationTimer = PSMC_TASK_INTERVAL / CtrlData->TaskTime;
@@ -68,11 +61,11 @@ void PSMController_Init(PSMController_t *data)
 
 /*----------------------------------------------------------------------------*/
 /**
- * @brief    Sprawdzanie poprawności wersji oprogramowania
- * @param    *firmwareInfo : wskaźnik do wersji oprogramowania
- * @retval   Poprawność wersji oprogramowania (true - wersja poprawna)
+ * @brief    Checks the firmware version correctness
+ * @param    *firmwareInfo : pointer to the firmware version
+ * @retval   Correctness of version (true - correct)
  */
-bool IsFirmwareCorrect(FirmwareInfo_t *firmwareInfo)
+static bool IsFirmwareCorrect(FirmwareInfo_t *firmwareInfo)
 {
 	return
 		firmwareInfo->MajorVersion &&
@@ -86,21 +79,15 @@ bool IsFirmwareCorrect(FirmwareInfo_t *firmwareInfo)
 }
 
 /*----------------------------------------------------------------------------*/
-/**
- * @brief    Funkcja obsługi komunikacji z modułami zasilacza
- * @param    Brak
- * @retval   Brak
- */
 void PSMController_Handler(void)
 {
-	static uint8_t curenntModNum = 0;	// Numer aktualnie obsługiwanego modułu
-	uint8_t deviceID;					// Adres modułu	
-	// Liczenie prędkości transmisji
+	static uint8_t curenntModNum = 0;
+	uint8_t deviceID;
 	static CommSpeed_t tempSpeed =  { .RxDataRate  = 0, .TxDataRate = 0 };	
-	uint8_t index;						// Indeks pomocniczy
-	bool isTransmisionOk = true;		// Status transmisji
+	uint8_t index;
+	bool isTransmisionOk = true;
 
-	// Pomiar prędkości transmisji
+	// Connection speed measurement
 	if (!--SpeedmeterTimer)
 	{
 		SpeedmeterTimer = SPEEDMETER_INTERVAL / CtrlData->TaskTime;
@@ -117,49 +104,40 @@ void PSMController_Handler(void)
 		tempSpeed.RxDataRate = tempSpeed.TxDataRate= 0;
 	}
 
-	// Timer obsługi komunikacji
 	if (!--CommunicationTimer)
 	{	
 		CommunicationTimer = PSMC_TASK_INTERVAL / CtrlData->TaskTime;
 		
-		// Maszyna stanów komunikacji z modułami zasilacza
+		// States handler
 		switch (PSMCState)
 		{
-			// --->Inicjalizacja odczytu wersji oprogramowania modułu
+			// --->Initialization of reading the firmware version
 			case PSMCS_FIRM_VER_READ_INIT:
-				// Wysyłanie komendy do modułu zasilacza
 				CtrlData->ModData[curenntModNum].Set.Header.Command =
 					MBPSC_READ_FIRM_VER;
 				isTransmisionOk =
 					I2CMaster_SendData(
 						(uint8_t *)&CtrlData->ModData[curenntModNum].Set.Header,
 						PSMC_READ_CMD_SIZE);
-
-				// Przejście do kolejnego stanu
+						
 				PSMCState = PSMCS_FIRM_VER_REQUEST;
 			
 				break;
 				
-			// --->Żądanie odczytu wersji oprogramowania modułu
+			// --->Request of reading the firmware version
 			case PSMCS_FIRM_VER_REQUEST:
-				// Przygotowywanie komunikatu
-				// Adres modułu zasilacza
 				deviceID =
 					CtrlData->ModData[curenntModNum].Set.Header.DeviceId |
 					I2C_READ_BIT;
-			
-				// Żądanie odbioru danych z modułu zasilacza
 				isTransmisionOk = I2CMaster_SendData(&deviceID,
 				                                     PSMC_FIRM_VER_SIZE);
-
-				// Przejście do kolejnego stanu
+													 
 				PSMCState = PSMCS_FIRM_VER_READ;
 			
 				break;
 				
-			// --->Odzcyt wersji oprogramowania modułu
+			// --->Reading the firmware version
 			case PSMCS_FIRM_VER_READ:
-				// Odczyt bufora I2C wraz z CRC
 				isTransmisionOk = I2CMaster_ReadData(ReadData,
 				                                     PSMC_FIRM_VER_SIZE);
 				if (!CRC8(ReadData, PSMC_FIRM_VER_SIZE))
@@ -168,16 +146,10 @@ void PSMController_Handler(void)
 						(uint8_t *)&CtrlData->ModData[curenntModNum].Get.Firmware,
 						ReadData,
 						PSMC_FIRM_VER_SIZE);
-				
-					// Reset timeout'u
 					CtrlData->ModData[curenntModNum].ConnReg.ErrorCounter =
 						PSMC_ERRORS_LIMIT;
-				
-					// Połączenie jest sprawne
 					CtrlData->ModData[curenntModNum].ConnReg.IsConnected =
 						true;
-						
-					// Liczenie prędkości
 					tempSpeed.RxDataRate += PSMC_FIRM_VER_SIZE;
 				}
 				else
@@ -187,14 +159,11 @@ void PSMController_Handler(void)
 					{
 						CtrlData->ModData[curenntModNum].ConnReg.ErrorCounter =
 							0;
-					
-						// Połączenie jest niesprawne
 						CtrlData->ModData[curenntModNum].ConnReg.IsConnected =
 							false;
 					}
-				}	
-			
-				// Przejście do kolejnego stanu
+				}
+				
 				PSMCState =
 					curenntModNum == (CtrlData->AmountOfModules - 1) &&
 					IsFirmwareCorrect(&CtrlData->ModData[curenntModNum].
@@ -203,9 +172,8 @@ void PSMController_Handler(void)
 
 				break;
 			
-			// --->Zapis danych do modułu
-			case PSMCS_SAVE:				
-				// Wysyłanie danych do modułu zasilacza (wraz z CRC)
+			// --->Sending data to the module
+			case PSMCS_SAVE:
 				CtrlData->ModData[curenntModNum].Set.Data.CRC = 
 					CRC8(
 						(uint8_t *)&CtrlData->ModData[curenntModNum].Set.Data, 
@@ -217,7 +185,6 @@ void PSMController_Handler(void)
 						(uint8_t *)&CtrlData->ModData[curenntModNum].Set,
 						PSMC_SENT_CMD_SIZE);
 						
-				// Kasowanie flagi aktywującej zasilanie modułu
 				if (CtrlData->ModData[curenntModNum].Set.Data.PowerState != 
 				    PSMS_IDLE)
 				{
@@ -225,49 +192,36 @@ void PSMController_Handler(void)
 						PSMS_IDLE;
 				}					
 								
-				// Liczenie Prędkości
-				tempSpeed.TxDataRate += PSMC_SENT_DATA_SIZE;	
-
-				// Przejście do kolejnego stanu	
+				tempSpeed.TxDataRate += PSMC_SENT_DATA_SIZE;
 				PSMCState = PSMCS_READ_INIT;
 								
 				break;
 
-			// --->Inicjalizacja odczytu z modułu
+			// --->Module reading initialization
 			case PSMCS_READ_INIT:
-				// Wysyłanie komendy do modułu zasilacza
 				CtrlData->ModData[curenntModNum].Set.Header.Command = 
 					MBPSC_READ;
-
-				// Przejście do kolejnego stanu
 				isTransmisionOk =
 					I2CMaster_SendData(
 						(uint8_t *)&CtrlData->ModData[curenntModNum].Set.Header,
 						PSMC_READ_CMD_SIZE);
 						
-				// Przejście do kolejnego stanu
 				PSMCState = PSMCS_DATA_REQUEST;
 
 				break;
 
-			// --->Żądanie odczytu danych z modułu
+			// --->Request of module data reading
 			case PSMCS_DATA_REQUEST:
-				// Przygotowywanie komunikatu
-				// Adres modułu zasilacza
 				deviceID =
 					CtrlData->ModData[curenntModNum].Set.Header.DeviceId |
 					I2C_READ_BIT;
-			
-				// Żądanie odbioru danych z modułu zasilacza
 				isTransmisionOk = I2CMaster_SendData(&deviceID,
 				                                     PSMC_READ_DATA_SIZE);
-
-				// Przejście do kolejnego stanu
+													 
 				PSMCState = PSMCS_BUFF_READ;
 
-			// --->Odzcyt bufora modułu
+			// --->Reading of module buffer
 			case PSMCS_BUFF_READ:
-				// Odczyt bufora I2C wraz z CRC
 				isTransmisionOk = I2CMaster_ReadData(ReadData,
 				                                     PSMC_READ_DATA_SIZE);
 				if (!CRC8(ReadData, PSMC_READ_DATA_SIZE))
@@ -276,19 +230,13 @@ void PSMController_Handler(void)
 						(uint8_t *)&CtrlData->ModData[curenntModNum].Get.Data, 
 						ReadData, 
 						PSMC_READ_DATA_SIZE);
-						
-					// Reset timeout'u
 					CtrlData->ModData[curenntModNum].ConnReg.ErrorCounter =
 						PSMC_ERRORS_LIMIT;
-					
-					// Połączenie jest sprawne
 					CtrlData->ModData[curenntModNum].ConnReg.IsConnected =
 						true;
-						
-					// Liczenie prędkości
 					tempSpeed.RxDataRate += PSMC_READ_DATA_SIZE;
 					
-					// Obliczanie mocy i rezystancji
+					// Calculation of power and resistance
 					CtrlData->ModData[curenntModNum].
 						ProcessedData.Filtered.Power =
 					(uint32_t)CtrlData->ModData[curenntModNum].
@@ -315,35 +263,28 @@ void PSMController_Handler(void)
 					{
 						CtrlData->ModData[curenntModNum].ConnReg.ErrorCounter = 
 							0;
-					
-						// Połączenie jest niesprawne
 						CtrlData->ModData[curenntModNum].ConnReg.IsConnected =
 							false;
 					}
 				}
 				
-				// Przejście w domyślny stan
 				PSMCState = PSMCS_SAVE;
 
 				break;
 
-			// --->Nieznany stan
+			// --->Uknown state
 			default:
-				// Przejście w domyślny stan
 				PSMCState = PSMC_START_STATE;
 		}
 
-		// Czy można przejść do kolejnego modułu?
+		// Can we proceed to the next module?
 		if (PSMCState == PSMCS_SAVE ||
-			// W przypadku odczytu wersji przejście do kolejnego modułu jest
-			// uzależnione od poprawnie odczytanej wersji?
-		    (PSMCState == PSMCS_FIRM_VER_READ_INIT && IsFirmwareCorrect(
+			(PSMCState == PSMCS_FIRM_VER_READ_INIT && IsFirmwareCorrect(
 				&CtrlData->ModData[curenntModNum].Get.Firmware.Info)))
 		{
 			curenntModNum++;
 			curenntModNum %= CtrlData->AmountOfModules;
 		
-			// Czyszczenie bufora
 			for (index = 0; index < PSMC_READ_DATA_SIZE; index++)
 			{
 				ReadData[index] = 0xFF;
@@ -352,4 +293,4 @@ void PSMController_Handler(void)
 	}	
 }
 
-/******************* (C) COPYRIGHT 2013 HENIUS *************** KONIEC PLIKU ***/
+/******************* (C) COPYRIGHT 2013 HENIUS *************** END OF FILE ****/

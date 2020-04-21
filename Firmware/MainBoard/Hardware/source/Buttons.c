@@ -4,37 +4,32 @@
  * @author   HENIUS (Paweł Witak)
  * @version  1.1.1
  * @date     04-02-2012
- * @brief    Obsługa przycisków
+ * @brief    Buttons handler
  *******************************************************************************
  *
  * <h2><center>COPYRIGHT 2012 HENIUS</center></h2>
  */
 
-/* Sekcja include ------------------------------------------------------------*/
+/* Include section -----------------------------------------------------------*/
 
-// --->Pliki systemowe
+// --->System files
 
 #include <stdint.h>
 #include <stdio.h>
 #include <avr/interrupt.h>
 
-// --->Pliki użytkownika
+// --->User files
 
 #include "Buttons.h"
 
-/* Sekcja zmiennych ----------------------------------------------------------*/
+/* Variable section ----------------------------------------------------------*/
 
-/* Sekcja funkcji ------------------------------------------------------------*/
+/* Function section ----------------------------------------------------------*/
 
 /*----------------------------------------------------------------------------*/
-/**
- * @brief    Inicjalizacja obsługi przycisków
- * @param    Brak
- * @retval   Brak
- */
 void Buttons_Init(void)
 {
-	// Konfiguracja pinów
+	// Pins configuration
 	KBD1_DDR &= ~KBD1;				// KBD1
 	KBD1_PORT |= KBD1;
 	KBD2_DDR &= ~KBD2;				// KBD2
@@ -46,11 +41,6 @@ void Buttons_Init(void)
 }
 
 /*----------------------------------------------------------------------------*/
-/**
- * @brief    Funkcja obsługi przycisków
- * @param    Brak
- * @retval   Maska przycisku
- */
 uint16_t Buttons_Handler(void)
 {
 	uint16_t kbdMask = 0;
@@ -98,6 +88,6 @@ uint16_t Buttons_Handler(void)
 	return kbdMask;
 }
 
-/******************* (C) COPYRIGHT 2012 HENIUS *************** KONIEC PLIKU ***/
+/******************* (C) COPYRIGHT 2012 HENIUS *************** END OF FILE ****/
 
 

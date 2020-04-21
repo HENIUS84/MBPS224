@@ -4,26 +4,27 @@
  * @author   LCD Workshop
  * @version  1.1.1
  * @date     30-12-2012
- * @brief    Plik obrazu 'AboutIcon' (rozmiar w bajtach: 125)
+ * @brief    'AboutIcon' image definition (size in bytes: 125)
  *******************************************************************************
  *
  * <h2><center>COPYRIGHT 2012 HENIUS</center></h2>
  */
 
-/* Sekcja include ------------------------------------------------------------*/
+/* Include section -----------------------------------------------------------*/
 
-// --->Pliki systemowe
+// --->System files
+
 #include <stdint.h>
 #include <avr/pgmspace.h>
 
-/* Sekcja zmiennych ----------------------------------------------------------*/
+/* Variable section ----------------------------------------------------------*/
 
-/*! Tabela danych obrazu */
+/*! Table of image data */
 const uint8_t PROGMEM AboutIcon[] =               
 {
-    0x01,                           /*!< Paleta kolorów w bitach */
-    0x1E, 0x00,                     /*!< Szerokość: 30 */
-    0x1E, 0x00,                     /*!< Wysokość:  30 */
+    0x01,                                   /*!< Color pallet in bits */
+    0x1E, 0x00,                             /*!< Width: 30 */
+    0x1E, 0x00,                             /*!< Height: 30 */
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3E, 
     0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x3E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
@@ -36,6 +37,4 @@ const uint8_t PROGMEM AboutIcon[] =
     0x3E, 0x3C, 0x3C, 0x3C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-/* Sekcja funkcji ------------------------------------------------------------*/
-
-/******************* (C) COPYRIGHT 2012 HENIUS *************** KONIEC PLIKU ***/
+/******************* (C) COPYRIGHT 2012 HENIUS *************** END OF FILE ****/

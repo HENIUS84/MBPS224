@@ -4,7 +4,7 @@
  * @author   HENIUS (Paweł Witak)
  * @version  1.1.1
  * @date     30-03-2012
- * @brief    Obsługa wzmacniacza mocy TDA8551 (plik nagłówkowy)
+ * @brief    Driver of audio amplifier TDA8551 (header file)
  *******************************************************************************
  *
  * <h2><center>COPYRIGHT 2012 HENIUS</center></h2>
@@ -13,73 +13,96 @@
 #ifndef TDA8551_H_
 #define TDA8551_H_
 
-/* Sekcja include ------------------------------------------------------------*/
+/* Include section -----------------------------------------------------------*/
 
-// --->Pliki systemowe
+// --->System files
 
 #include <avr/io.h>
 #include <stdbool.h>
 
-/* Sekcja stałych, makr i definicji ------------------------------------------*/
+/* Macros, constants and definitions section ---------------------------------*/
 
-// Wyprowadzenia
-// Pin zmiany głośności
-#define VOLUME_PORT	   		(PORTA) /*!< Rejestr wyjściowy VOLUME */
-#define VOLUME_DDR       	(DDRA)  /*!< Rejestr kierunkowy VOLUME */
-#define VOLUME_PIN       	(PINA)  /*!< Rejestr wejściowy VOLUME */
-#define VOLUME				(_BV(3))/*!< Maska pinu VOLUME */
+// Pins
 
-// Pin trybu pracy
-#define AUDIO_MODE_PORT	   	(PORTA) /*!< Rejestr wyjściowy AUDIO_MODE */
-#define AUDIO_MODE_DDR      (DDRA)  /*!< Rejestr kierunkowy AUDIO_MODE */
-#define AUDIO_MODE_PIN      (PINA)  /*!< Rejestr wejściowy AUDIO_MODE */
-#define AUDIO_MODE			(_BV(4))/*!< Maska pinu AUDIO_MODE */
+// Volume pin
+#define VOLUME_PORT	   		(PORTA) /*!< Output register of VOLUME pin */
+#define VOLUME_DDR       	(DDRA)  /*!< Direction register of VOLUME pin */
+#define VOLUME_PIN       	(PINA)  /*!< Input register of VOLUME pin */
+#define VOLUME				(_BV(3))/*!< Bit mask of VOLUME pin */
 
-// Makra
+// Work mode pin
+#define AUDIO_MODE_PORT	   	(PORTA) /*!< Output register of AUDIO_MODE pin */
+#define AUDIO_MODE_DDR      (DDRA)  /*!< Direction register of AUDIO_MODE pin */
+#define AUDIO_MODE_PIN      (PINA)  /*!< Input register of AUDIO_MODE pin */
+#define AUDIO_MODE			(_BV(4))/*!< Bit mask of AUDIO_MODE pin */
+
+// Macros
+
 // Pin VOLUME
-/*! Stan wysokiej impednacji */
-#define VOLUME_HIZ()		VOLUME_DDR &= ~VOLUME; \
-                            VOLUME_PORT &= ~VOLUME
-/*! Stan wysoki */
-#define VOLUME_HIGH()		VOLUME_DDR |= VOLUME; \
-                            VOLUME_PORT |= VOLUME
-/*! Stan niski */
-#define VOLUME_LOW()		VOLUME_DDR |= VOLUME; \
-                            VOLUME_PORT &=  ~VOLUME
+/*! HIZ state */
+#define VOLUME_HIZ()		VOLUME_DDR &= ~VOLUME;  VOLUME_PORT &= ~VOLUME
+/*! High state */
+#define VOLUME_HIGH()		VOLUME_DDR |= VOLUME;  VOLUME_PORT |= VOLUME
+/*! Low state */
+#define VOLUME_LOW()		VOLUME_DDR |= VOLUME;  VOLUME_PORT &=  ~VOLUME
 							 
-// Pin AUDIO_MODE
-/*! Stan wysokiej impednacji */
+// AUDIO_MODE pin
+/*! HIZ state */
 #define AUDIO_MODE_HIZ()	AUDIO_MODE_DDR &= ~AUDIO_MODE; \
                             AUDIO_MODE_PORT &= ~AUDIO_MODE
-/*! Stan wysoki */
-#define AUDIO_MODE_HIGH()	AUDIO_MODE_DDR |= AUDIO_MODE; \
+/*! High state */
+#define AUDIO_MODE_HIGH()	AUDIO_MODE_DDR |= AUDIO_MODE;  \
                             AUDIO_MODE_PORT |= AUDIO_MODE
-/*! Stan niski */
+/*! Low state */
 #define AUDIO_MODE_LOW()	AUDIO_MODE_DDR |= AUDIO_MODE; \
                             AUDIO_MODE_PORT &=  ~AUDIO_MODE
-/*! Tryb wyciszenia */
+/*! MUTE mode */
 #define TDA8551_MUTE()		AUDIO_MODE_HIZ()
-/*! Tryb STANDBY */
+/*! STANDBY mode */
 #define TDA8551_STANDBY()	AUDIO_MODE_HIGH()
-/*! Tryb OPERATING */
+/*! OPERATING mode */
 #define TDA8551_OPERATING()	AUDIO_MODE_LOW()
 							 
-// Stałe
-#define TDA8551_STEPS_COUNT	(64)	/*!< Liczba korków regulacji głośności */
-#define TDA8551_DEF_VOLUME	(6)		/*!< Domyślny poziom głośności w % */
+// Constants
+#define TDA8551_STEPS_COUNT	(64)	/*!< Volume regulation steps */
+#define TDA8551_DEF_VOLUME	(6)		/*!< Default volume level in w % */
 
-/* Sekcja deklaracji ---------------------------------------------------------*/
+/* Declaration section -------------------------------------------------------*/
 
-// --->Funkcje
-// Inicjalizacja obsługi wzmacniacza
+// --->Functions
+
+/*----------------------------------------------------------------------------*/
+/**
+ * @brief    Initializes drive of audio amplifier
+ * @param    None
+ * @retval   None
+ */
 void TDA8551_Init(void);
-// Ustawianie głośności
+
+/*----------------------------------------------------------------------------*/
+/**
+ * @brief    Sets the volume
+ * @param    volume : volume level
+ * @retval   None
+ */
 void TDA8551_SetVolume(uint8_t volume);
-// Pobieranie aktualnej głośności
+
+/*----------------------------------------------------------------------------*/
+/**
+ * @brief    Gets the current volume level
+ * @param    None
+ * @retval   Current volume level
+ */
 uint8_t TDA8551_GetVolume(void);
-// Zwiększanie/zmniejszanie głośności
+
+/*----------------------------------------------------------------------------*/
+/**
+ * @brief    Increasing/decreasing volume level
+ * @param    isUp : true - increasing, otherwise false
+ * @retval   None
+ */
 void TDA8551_VolumeUpDown(bool isUp);
 
 #endif								/* TDA8551_H_ */
 
-/******************* (C) COPYRIGHT 2012 HENIUS *************** KONIEC PLIKU ***/
+/******************* (C) COPYRIGHT 2012 HENIUS *************** END OF FILE ****/

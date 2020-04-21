@@ -4,26 +4,27 @@
  * @author   LCD Workshop
  * @version  1.01.001
  * @date     13-04-2014
- * @brief    Plik obrazu 'SplashScreen2' (rozmiar w bajtach: 1029)
+ * @brief    'SplashScreen2' image definition (size in bytes: 1029)
  *******************************************************************************
  *
  * <h2><center>COPYRIGHT 2014 HENIUS</center></h2>
  */
 
-/* Sekcja include ------------------------------------------------------------*/
+/* Include section -----------------------------------------------------------*/
 
-// Pliki systemowe
+// --->System files
+
 #include <stdint.h>
 #include <avr/pgmspace.h>
 
-/* Sekcja zmiennych ----------------------------------------------------------*/
+/* Variable section ----------------------------------------------------------*/
 
-/*! Tabela danych obrazu */
+/*! Table of image data */
 const uint8_t PROGMEM SplashScreen2[] =           
 {
-    0x01,                           /*!< Paleta kolorów w bitach */
-    0x80, 0x00,                     /*!< Szerokość: 128 */
-    0x40, 0x00,                     /*!< Wysokość:  64 */
+    0x01,                                   /*!< Color pallet in bits */
+    0x80, 0x00,                             /*!< Width: 128 */
+    0x40, 0x00,                             /*!< Height:  64 */
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
@@ -112,4 +113,4 @@ const uint8_t PROGMEM SplashScreen2[] =
     0x00, 0x00, 0x00, 0x00
 };
 
-/******************* (C) COPYRIGHT 2014 HENIUS *************** KONIEC PLIKU ***/
+/******************* (C) COPYRIGHT 2014 HENIUS *************** END OF FILE ****/

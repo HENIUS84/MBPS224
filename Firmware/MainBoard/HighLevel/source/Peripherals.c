@@ -4,19 +4,21 @@
  * @author   HENIUS (Pawe³ Witak)
  * @version  1.1.2
  * @date     09-01-2014
- * @brief    Obs³uga peryferiów
+ * @brief    Peripherals driver
  *******************************************************************************
  *
  * <h2><center>COPYRIGHT 2013 HENIUS</center></h2>
  */
 
-/* Sekcja include ------------------------------------------------------------*/
+/* Include section -----------------------------------------------------------*/
 
-// --->Pliki systemowe
+// --->System files
+
 #include <stdint.h>
 #include <avr/io.h>
 
-// --->Pliki u¿ytkownika
+// --->User files
+
 #include "main.h"
 #include "Peripherals.h"
 #include "SoundLib.h"
@@ -26,10 +28,9 @@
 #include "TDA8551.h"
 #include "PSDataService.h"
 
-/* Sekcja zmiennych ----------------------------------------------------------*/
+/* Variable section ----------------------------------------------------------*/
 
-int16_t MainBoardTemp;				/*!< Temperatura p³ytki */	
-/*! Kontroler portu szeregowego */
+int16_t MainBoardTemp;	
 SPController_t SerialPortController =
 {
 	.Delay           = Wait_ms,
@@ -37,8 +38,8 @@ SPController_t SerialPortController =
 	.IsPrintfEnabled = true,
 	.PrintfPort      = SPN_USART0
 };
-/*! Konfiguracja portu szeregowego */
-SPDescriptor_t SerialPortConfig =
+/*! Serial port configuration */
+static SPDescriptor_t SerialPortConfig =
 {
 	.BaudRate     = SPBR_115200,
 	.DataLength   = 8,
@@ -49,14 +50,12 @@ SPDescriptor_t SerialPortConfig =
 	.SpeedMode    = SPSM_NORMAL,
 	.IsIrqEnabled = true
 };
-/*! Dane pomiarowe modu³ów zasilacza */
 PSMCData_t PSMData[PSM_TABLE_SIZE];
-CommSpeed_t CommunicationSpeed;		/*!< Prêdkoœci komunikacji z modu³ami */
-/*! Lista temperatur z 1-Wire */
-int16_t Temperature[AMOUNT_OF_THERMOMETERS];
-/*! Informacje o czujniku 1-Wire */
-OWIDevice_t Info[AMOUNT_OF_THERMOMETERS];
-/*! Kontroler obs³ugi termometrów na 1-Wire */
+CommSpeed_t CommunicationSpeed;
+/*! 1-Wire temperatures */
+static int16_t Temperature[AMOUNT_OF_THERMOMETERS];
+/*! 1-Wire sensors info */
+static OWIDevice_t Info[AMOUNT_OF_THERMOMETERS];
 OWIThermoCtrl_t ThermometerController =
 {
 	.MaxAmountOfDevices = AMOUNT_OF_THERMOMETERS,
@@ -67,7 +66,6 @@ OWIThermoCtrl_t ThermometerController =
 	.Devices            = Info,
 	.Temperatures       = Temperature
 };
-/*! Dane kontrolera temperatury */
 ThermalData_t ThermalData = 
 {
 	.BoardTemperature    = &MainBoardTemp,
@@ -77,16 +75,16 @@ ThermalData_t ThermalData =
 	.EnableRegulator     = SetRegulator,
 	.SetCooler           = SetCoolerPower
 };	
-/*! Dane kontrolera komunikacji z modu³ami */
-PSMController_t PSMController =
+/*! Module communication controller */
+static PSMController_t PSMController =
 {
 	.ModData         = PSMData,
 	.SpeedData       = &CommunicationSpeed,
 	.AmountOfModules = PS_MODULES_COUNT,
 	.TaskTime         = PSM_TASK_TIME
 };	
-/*! Kontroler klawiatury */
-Keyboard_t Keyboard =
+/*! Keyboard controller */
+static Keyboard_t Keyboard =
 {
 	.AmountOfButtons = 4,
 	.Handler         = Buttons_Handler,
@@ -115,26 +113,21 @@ Keyboard_t Keyboard =
 		}
 	}
 };
-/*! Kontroler obs³ugi dŸwiêku */
+/*! Sound controller */
 SoundController_t SoundController =
 {
 	.SetFreq   = Audio_SetFreq,
 	.StopSound = Audio_StopSound
 };
 
-/* Sekcja funkcji ------------------------------------------------------------*/
+/* Function section ----------------------------------------------------------*/
 
 /*----------------------------------------------------------------------------*/
-/**
-* @brief    Inicjalizacja peryferiów
-* @param    *peripherals : wskaŸnik do struktury peryferiów
-* @retval   Brak
-*/
 void InitPeripherals(void)
 {
 	uint8_t index;
 	
-	// Inicjalizacja tablicy pomiarów
+	// Initialization of measurement table
 	for (index = 0; index < PS_MODULES_COUNT; index++)
 	{
 		PSMData[index].Set.Header.DeviceId =
@@ -143,49 +136,27 @@ void InitPeripherals(void)
 		PSMData[index].Set.Data.PowerState = PSMS_ON;
 	}
 		
-	//InitHardware();					// Inicjalizacja g³ównych podzespo³ów
-	
-	// --->Port szeregowy
+	//InitHardware();	
 	SerialPort_Init(&SerialPortController);
 	SerialPort_Open(SPN_USART0,
 	                &SerialPortConfig);
-					
-	// -->Wyœwietlacz				
-	//KS0108LCD_Init();				// Inicjalizacja wyœwietlacza	
-	
-	// --->Kontroler komunikacji z modu³em zasilacza	
+	//KS0108LCD_Init();	
 	PSMController_Init(&PSMController);
-	
-	// --->Komunikcja z PC
 	PSDataService_Init();
-	
-	// --->Klawiatura
 	Buttons_Init();
 	InitKeyboard(&Keyboard);
-	
-	// --->Pomiar temperatury stabilizatora
 	OWIThermo_Init(&ThermometerController);
-	
-	// --->Obs³uga audio
-	TDA8551_Init();					// Inicjalizacja wzmacniacza
-	Audio_Init(F_CPU);				// Inicjalizacja obs³ugi audio
-	// Inicjalizacja biblioteki dŸwiêkowej
+	TDA8551_Init();
+	Audio_Init(F_CPU);
 	InitSoundLib(&SoundController);	
-	
-	// --->Kontrola temperaturowa
 	ThermalCtrl_Init(&ThermalData);
 }
 
 /*----------------------------------------------------------------------------*/
-/**
- * @brief    Pobieranie liczby pod³¹czonych modu³ów
- * @param    Brak
- * @retval   Liczba pod³¹czonych modu³ów
- */
 uint8_t GetPSModulesNumber(void)
 {
-	uint8_t index;					// Indeks pomocniczy
-	uint8_t result = 0;				// Liczba pod³¹czonych modu³ów												
+	uint8_t index;
+	uint8_t result = 0;											
 	
 	for (index = 0; index < PS_MODULES_COUNT; index++)
 	{
@@ -199,15 +170,9 @@ uint8_t GetPSModulesNumber(void)
 }
 
 /*----------------------------------------------------------------------------*/
-/**
- * @brief    Aktywacja/dezaktywacja modu³u zasilacza
- * @param    isEnabled : flaga w³¹czania modu³u
- * @param    moduleNumber : numer modu³u
- * @retval   Brak
- */
 void SetRegulator(bool isEnabled, uint8_t moduleNumber)
 {
 	PSMData[moduleNumber].Set.Data.PowerState = isEnabled ? PSMS_ON : PSMS_OFF; 
 }
 
-/******************* (C) COPYRIGHT 2013 HENIUS *************** KONIEC PLIKU ***/
+/******************* (C) COPYRIGHT 2013 HENIUS *************** END OF FILE ****/

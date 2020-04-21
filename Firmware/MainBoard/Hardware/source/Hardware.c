@@ -4,84 +4,63 @@
  * @author   HENIUS (Paweł Witak)
  * @version  1.1.2
  * @date     16/04/2014
- * @brief    Zestaw funkcji związanych z obsługą płyty głównej
+ * @brief    Files of main board hardware
  *******************************************************************************
  *
  * <h2><center>COPYRIGHT 2014 HENIUS</center></h2>
  */
 
-/* Sekcja include ------------------------------------------------------------*/
+/* Include section -----------------------------------------------------------*/
 
-// --->Pliki systemowe
+// --->System files
 
 #include <stdint.h>
 #include <avr/io.h>
 #include <avr/wdt.h>
 #include <math.h>
 
-// --->Pliki użytkownika
+// --->User files
 
 #include "Hardware.h"
 #include "Utils.h"
 
-/* Sekcja zmiennych ----------------------------------------------------------*/
+/* Variable section ----------------------------------------------------------*/
 
-uint16_t StatLedOnTime;             /*!< Czas świecenia diody statusowej */
-uint16_t StatLedOffTime;            /*!< Czas nieświecenia diody statusowej */
+uint16_t StatLedOnTime;
+uint16_t StatLedOffTime;
 
-/* Sekcja funkcji ------------------------------------------------------------*/
+/* Function section ----------------------------------------------------------*/
 
 /*----------------------------------------------------------------------------*/
-/**
- * @brief    Ustawianie podświetlenia na zadaną wartość
- * @param    baclightValue: procentowa wartość podświetlenia
- * @retval   Brak
- */
 void SetLcdBacklight(uint8_t backlightVal)
 {
-	// Ograniczenie
-	LIMIT_VALUE(backlightVal, 100, 0);	
-	
-	// Ustawienie odpowiedniej wartości rejestru PWM
+	LIMIT_VALUE(backlightVal, 100, 0);
 	LCD_BACKL_REG = backlightVal * LCD_BACKL_MAX / 100;  
 }
 
 /*----------------------------------------------------------------------------*/
-/**
- * @brief    Ustawianie mocy wentylatora na zadaną wartość
- * @param    powerValue: procentowa wartość mocy
- * @retval   Brak
- */
 void SetCoolerPower(uint8_t powerValue)
 {	
-	// Ograniczenie
-	LIMIT_VALUE(powerValue, 100, 0);	
-	
-	// Ustawienie odpowiedniej wartości rejestru PWM
+	LIMIT_VALUE(powerValue, 100, 0);
 	COOLER_REG = (uint32_t)powerValue * COOLER_PWM_MAX / 100;
 }
 
 /*----------------------------------------------------------------------------*/
-/**
- * @brief    Inicjalizacja podzespołów płyty głównej
- * @param    Brak
- * @retval   Brak
- */
 void InitHardware(void)
 {
-	// Inicjalizacja
+	// Initialization
 	
-	// ---> Główny timer systemowy
-	TCCR2 = _BV(WGM21);				// Tryb CTC
-	TCCR2 |= SYS_TIMER_CS << CS20;	// Ustalanie prescalera
-	OCR2 = SET_SYS_TIME();			// Ustalanie czasu przerwania
-	TIMSK |= _BV(OCIE2);			// Przerwanie na odliczenie czasu
+	// ---> Main system timer
+	TCCR2 = _BV(WGM21);				// CTC mode
+	TCCR2 |= SYS_TIMER_CS << CS20;	// Prescaler
+	OCR2 = SET_SYS_TIME();			// Interrupt time
+	TIMSK |= _BV(OCIE2);			// Interrupt mode
 
 	// ---> Dipswitch
 	DIPSW_DDR &= ~(DIPSW1 | DIPSW2 | DIPSW3);
 	DIPSW_PORT |= DIPSW1 | DIPSW2 | DIPSW3;
 
-	// --->Statusowa dioda led
+	// --->Status LED
 	STAT_LED_DDR |= STAT_LED;
 	STAT_LED_OFF();
 	SetStatLedBlinking(STAT_LED_ON_TIME, STAT_LED_OFF_TIME);
@@ -90,40 +69,35 @@ void InitHardware(void)
 	BUZZER_DDR |= BUZZER;
 	BUZZER_OFF();
 
-	// --->Podtrzymanie zasilania
+	// --->Power backup
 	POWER_BTN_DDR |= POWER_BTN;
 	POWER_BTN_ON();
 	
-	// --->Zmiana trybu zasilania
+	// --->Zmiana trybu zasilaniaSymmetric mode
 	SYM_MODE_DDR |= SYM_MODE;
 	SYM_MODE_OFF();	
 
-    // --->Wyświetlacz LCD i regulacja podświetlenia
-    // Inicjalizacja pinu i PWM
+    // --->LCD support
+    // LCD dimmer pin
     LCD_BACKL_DDR |= LCD_BACKL;
     TCCR0 |= _BV(WGM01) | _BV(WGM00) | 	// Fast PWM
-			 _BV(COM01) | 				// Tryb nieodwracający
-			 (LCD_BACKL_CS << CS00);    // Start timera
-    // Ten timer będzie wykorzystany dla celów funkcji opóźniającej
+			 _BV(COM01) | 				// Mode
+			 (LCD_BACKL_CS << CS00);    // Timer start
+    // This timer is also for delay function support
     TIMSK |= _BV(TOIE0);
 		
-	// --->Regulacja obrotów wentylatora
+	// --->FAN coontroller
 	COOLER_DDR |= COOLER;
 	TCCR3A |= _BV(WGM31) | _BV(WGM30) |	// Phase Correct - 10 bit
-	          _BV(COM3A1);				// Tryb nieodwracający
-	TCCR3B |= (COOLER_CS << CS30);		// Start timera
+	          _BV(COM3A1);				// Mode
+	TCCR3B |= (COOLER_CS << CS30);		// Timer start
 	SetCoolerPower(0);
 	
-	// --->Inicjalizacja watchdog'a
+	// --->Watchdog
 	wdt_enable(WDTO_2S);
 }
 
 /*----------------------------------------------------------------------------*/
-/**
- * @brief    Funkcja zarządzania zasilaniem
- * @param    Brak
- * @retval   Brak
- */
 void SystemPowerHandler()
 {
 	// Timer obsługi zasilania
@@ -138,24 +112,19 @@ void SystemPowerHandler()
 }
 
 /*----------------------------------------------------------------------------*/
-/**
- * @brief    Funkcja obsługi migania diodą statusową
- * @param    Brak
- * @retval   Brak
- */
 void StatLedHandler()
 {
-	// Timer diody (załączenie)
+	// LED timer (turning on)
 	static uint16_t ledOnTimer = 1;
-	// Timer diody (wyłączenie)       
+	// LED timer (turning of)       
 	static uint16_t ledOffTimer = 1;
 	
-	// --->Mruganie diodą statusową
+	// --->Status LED blinking
 	if (StatLedOffTime)
 	{
 		if (!--ledOnTimer)
 		{
-			STAT_LED_OFF();		// Dioda zgaszona
+			STAT_LED_OFF();
 			ledOnTimer = 0;
 		}
 	}
@@ -164,7 +133,7 @@ void StatLedHandler()
 	{
 		if (!--ledOffTimer)
 		{
-			STAT_LED_ON();		// Dioda zapalona
+			STAT_LED_ON();
 			ledOffTimer = StatLedOnTime + StatLedOffTime;
 			ledOnTimer = StatLedOnTime;
 		}
@@ -172,21 +141,15 @@ void StatLedHandler()
 }
 
 /*----------------------------------------------------------------------------*/
-/**
- * @brief    Funkcja ustawiająca czasy migania diody statusowej
- * @param    onTime: czas świecenia diody (w ms)
- * @param    offTime: czas nieświecenia (w ms)
- * @retval   Brak
- */
 void SetStatLedBlinking(uint16_t onTime, uint16_t offTime)
 {
-	// Pośredni czas włączenia 
+	// Temp LED on time
 	double _onTime = round(onTime / SYS_TIME);
-	// Pośredni czas wyłączenia
+	// Temp LED of time
 	double _offTime = round(offTime / SYS_TIME);
 	
 	StatLedOnTime = _onTime > 0  ? _onTime : onTime;
 	StatLedOffTime = _offTime > 0  ? _offTime : offTime;
 }
 
-/******************* (C) COPYRIGHT 2014 HENIUS *************** KONIEC PLIKU ***/
+/******************* (C) COPYRIGHT 2014 HENIUS *************** END OF FILE ****/

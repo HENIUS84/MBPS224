@@ -4,21 +4,21 @@
  * @author   HENIUS (Pawe³ Witak)
  * @version  1.1.1
  * @date     07-11-2013
- * @brief    Us³uga zarz¹dzaj¹ca komunikacj¹ z komputerem
+ * @brief    Service managing of communication with PC
  *******************************************************************************
  *
  * <h2><center>COPYRIGHT 2013 HENIUS</center></h2>
  */
 
-/* Sekcja include ------------------------------------------------------------*/
+/* Include section -----------------------------------------------------------*/
 
-// --->Pliki systemowe
+// --->System files
 
 #include <stdio.h>
 #include <string.h>
 #include <avr/pgmspace.h>
 
-// --->Pliki u¿ytkownika
+// --->User files
 
 #include "PSDataService.h"
 #include "HENBUSController.h"
@@ -28,34 +28,34 @@
 #include "Settings.h"
 #include "Utils.h"
 
-/* Sekcja zmiennych ----------------------------------------------------------*/
+/* Variable section ----------------------------------------------------------*/
 
-/*! WskaŸnik do funk. wysy³aj¹cej ramkê */
-void(*SendFrame)(CommProtocolFrame_t*);
-/*! Dane wysy³ane do PC */
-PCCommData_t PCCommData[PS_MODULES_COUNT];
+/*! Pointer to the frame sending function */
+static void(*SendFrame)(CommProtocolFrame_t*);
+/*! Data sent to PC */
+static PCCommData_t PCCommData[PS_MODULES_COUNT];
 
-// --->£añcuchy tekstowe komend
+// --->Command texts
 
 #ifndef COMM_BINARY_MODE
-/*! Komenda GDI */
-const uint8_t CommandGDI[] = "GDI";
-/*! Komenda SSD */
-const uint8_t CommandSSD[] = "SSD";
-/*! Komenda TSD */
-const uint8_t CommandTSD[] = "TSD";
-/*! Komenda SOD */
-const uint8_t CommandSOD[] = "SOD";
-/*! Komenda TOD */
-const uint8_t CommandTOD[] = "TOD";
-/*! Komenda SMD */
-const uint8_t CommandSMD[] = "SMD";
-/*! Komenda WDT */
-const uint8_t CommandWDT[] = "WDT";
-/*! Komenda WDA */
-const uint8_t CommandWDA[] = "WDA";
-/*! £añcuchy tekstowe komend */
-const uint8_t* const PSCommands[] =
+/*! Command GDI */
+static const uint8_t CommandGDI[] = "GDI";
+/*! Command SSD */
+static const uint8_t CommandSSD[] = "SSD";
+/*! Command TSD */
+static const uint8_t CommandTSD[] = "TSD";
+/*! Command SOD */
+static const uint8_t CommandSOD[] = "SOD";
+/*! Command TOD */
+static const uint8_t CommandTOD[] = "TOD";
+/*! Command SMD */
+static const uint8_t CommandSMD[] = "SMD";
+/*! Command WDT */
+static const uint8_t CommandWDT[] = "WDT";
+/*! Command WDA */
+static const uint8_t CommandWDA[] = "WDA";
+/*! Command texts */
+static const uint8_t* const PSCommands[] =
 {
 	CommandGDI,
 	CommandSSD,
@@ -66,10 +66,10 @@ const uint8_t* const PSCommands[] =
 };
 #endif
 
-// --->Ramki Watchdog'a
+// --->Watchdog frames
 
-/*! Ramka testowa Watchdog'a z PC */
-const CommProtocolFrame_t WatchdogTestFrame =
+/*! Watchdog test frame from PC */
+static const CommProtocolFrame_t WatchdogTestFrame =
 {
 	.Address     = PSDS_MB_ADDRESS,
 #ifndef COMM_BINARY_MODE
@@ -81,8 +81,8 @@ const CommProtocolFrame_t WatchdogTestFrame =
 	.DataSize    = 0
 	
 };
-/*! Ramka odpowiedzi Watchdog'a z zasilacza */
-const CommProtocolFrame_t WatchdogAnswerFrame =
+/*! Watchdog response frame from power supply */
+static const CommProtocolFrame_t WatchdogAnswerFrame =
 {
 	.Address     = PSDS_MB_ADDRESS,
 #ifndef COMM_BINARY_MODE	
@@ -93,37 +93,36 @@ const CommProtocolFrame_t WatchdogAnswerFrame =
 	.Data        = 0,
 	.DataSize    = 0	
 };
-/*! WskaŸnik do kontrolera komunikacyjnego */
-CommController_t Controller;
-/*! Dane do wys³ania w ramce */
-uint8_t FrameData[FRAME_DATA_SIZE];
+/*! Pointer to communication controller */
+static CommController_t Controller;
+/*! Sent data in frame */
+static uint8_t FrameData[FRAME_DATA_SIZE];
 #ifndef COMM_BINARY_MODE
-/*! Bufor komendy ramki */
-uint8_t FrameCommand[FRAME_CMD_SIZE + 1];
+/*! Command buffer of frame */
+static uint8_t FrameCommand[FRAME_CMD_SIZE + 1];
 #endif
-/*! Ramka do wys³ania */
-CommProtocolFrame_t FrameToSend =
+/*! Frame to be sent */
+static CommProtocolFrame_t FrameToSend =
 {
 	.Data = FrameData
 };
-/*! Flaga okreœlaj¹ca status po³¹czenia */
-bool IsConnected;
-/*! Flaga aktywuj¹ca wysy³anie danych pomiarowych */
+/*! Connection status flag */
+static bool IsConnected;
+/*! Activation flag of measurement data sending */
 bool IsDataSendEnabled[PS_MODULES_COUNT];
-/*! Flaga aktywuj¹ca wysy³anie danych rejestratora */
+/*! Activation flag of logger data sending */
 bool IsLoggerSendEnabled[PS_MODULES_COUNT];
 
-/* Sekcja funkcji ------------------------------------------------------------*/
+/* Function section ----------------------------------------------------------*/
 
 /*----------------------------------------------------------------------------*/
 /**
-* @brief    Zapis ustawieñ
-* @param    Brak
-* @retval   Brak
+* @brief    Saves settings.
+* @param    None
+* @retval   None
 */
-void PSDataService_SaveSettings()
+static void PSDataService_SaveSettings()
 {
-	// Indeks pomocniczy
 	uint8_t index;
 	
 	for (index = 0; index < PS_MODULES_COUNT; index++)
@@ -144,14 +143,14 @@ void PSDataService_SaveSettings()
 
 /*----------------------------------------------------------------------------*/
 /**
-* @brief    Funkcja pobieraj¹ca komendê z ³añcucha
-* @param    command : komenda odebrana z ramki
-* @retval   Brak
+* @brief    Gets command from array.
+* @param    command : command data array
+* @retval   None
 */
 #ifndef COMM_BINARY_MODE
-EPSCommand_t PSDataService_GetCommand(uint8_t* command)
+static EPSCommand_t PSDataService_GetCommand(uint8_t* command)
 {
-	uint8_t i;						// Indeks
+	uint8_t i;
 		
 	for (i = 0; i < PSC_AMOUNT; i++)
 	{
@@ -167,17 +166,17 @@ EPSCommand_t PSDataService_GetCommand(uint8_t* command)
 
 /*----------------------------------------------------------------------------*/
 /**
-* @brief    Sprawdzanie w³aœciciela adresu
-* @param    address : adres do sprawdzenia
-* @retval   Status w³asnoœci (true - adres poprawny)
+* @brief    Checks of command owner.
+* @param    address : address to check
+* @retval   Ownership status (true - address valid)
 */
-bool PSDataService_CheckAddress(uint8_t address)
+static bool PSDataService_CheckAddress(uint8_t address)
 {
-	// Czy to adres p³yty g³ównej?
+	// Is it address of main board?
 	bool result = address == PSDS_MB_ADDRESS;
 	uint8_t index;
 	
-	// Sprawdzanie czy to adres któregoœ z modu³ów?
+	// Is it addres of module?
 	for (index = 0; index < PS_MODULES_COUNT; index++)
 	{
 		if (address == (PSDS_MB_ADDRESS + index + 1))
@@ -192,14 +191,14 @@ bool PSDataService_CheckAddress(uint8_t address)
 
 /*----------------------------------------------------------------------------*/
 /**
-* @brief    Funkcja analizuj¹ca odebrane ramki
-* @param    Brak
-* @retval   Brak
+* @brief    Analysis received frames.
+* @param    frame: frames array
+* @retval   None
 */
-void PSDataService_AnalyzeFrame(CommProtocolFrame_t* frame)
+static void PSDataService_AnalyzeFrame(CommProtocolFrame_t* frame)
 {
-	uint8_t channelId;				// Identyfikator kana³u
-	uint8_t commandId;				// Identyfikator komendy
+	uint8_t channelId;
+	uint8_t commandId;
 	
 	if (frame)
 	{
@@ -209,10 +208,10 @@ void PSDataService_AnalyzeFrame(CommProtocolFrame_t* frame)
 		FrameToSend.CommandID = frame->CommandID;
 #endif		
 		
-		// Czy to w³aœciwy adres?
+		// Is it valid address?
 		if (PSDataService_CheckAddress(frame->Address))
 		{
-			// Jak¹ ramkê odebrano?
+			// Which frame is received?
 			commandId =
 #ifndef COMM_BINARY_MODE			
 			PSDataService_GetCommand(frame->CommandName));
@@ -222,9 +221,8 @@ void PSDataService_AnalyzeFrame(CommProtocolFrame_t* frame)
 
 			switch (commandId)
 			{
-				// --->¯¹danie wys³ania informacji o urz¹dzeniu
+				// --->Request of sending the device information
 				case PSC_GDI:
-					// Wysy³anie informacji o urz¹dzeniu
 #ifndef COMM_BINARY_MODE					
 					FrameToSend.CommandName = (uint8_t*)PSCommands[PSC_GDI];					
 #endif					
@@ -234,19 +232,18 @@ void PSDataService_AnalyzeFrame(CommProtocolFrame_t* frame)
 			
 					break;
 			
-				// --->¯¹danie rozpoczêcia wysy³ania danych
+				// --->Request of measurement data sending start
 				case PSC_SSD:
 				
-				// --->¯¹danie zaprzestania wysy³ania danych pomiarowych
+				// --->Request of measurement data sending stop
 				case PSC_TSD:
 				
-				// --->¯¹danie rozpoczêcia wysy³ania danych oscyloskopu
+				// --->Request of oscilloscope data sending start
 				case PSC_SLD:
 				
-				// --->¯¹danie zaprzestania wysy³ania danych oscyloskopu
+				// --->Request of oscilloscope data sending stop
 				case PSC_TLD:
-					// Czy jest to adres modu³u i
-					// czy dany modu³ jest pod³¹czony?
+					// Is it module address and whether module is connected?
 					if (frame->Address > PSDS_MB_ADDRESS &&
 					    PSMData[channelId].ConnReg.IsConnected)
 					{
@@ -270,10 +267,9 @@ void PSDataService_AnalyzeFrame(CommProtocolFrame_t* frame)
 					
 					break;
 			
-				// --->Wysy³anie danych ustawionych
+				// --->Sending set values
 				case PSC_GSD:
-					// Czy jest to adres modu³u i
-					// czy dany modu³ jest pod³¹czony?
+					// Is it module address and whether module is connected?
 					if (frame->Address > PSDS_MB_ADDRESS &&
 					    PSMData[channelId].ConnReg.IsConnected)
 					{
@@ -288,31 +284,29 @@ void PSDataService_AnalyzeFrame(CommProtocolFrame_t* frame)
 			
 					break;
 					
-				// --->Ustawianie parametrów zasilacza
+				// --->Setting of power supply parametrs
 				case PSC_SDS:
-					// Czy jest to adres modu³u?
+					// Is it module address?
 					if (frame->Address > PSDS_MB_ADDRESS)
 					{
 						memcpy(
 							(uint8_t*)&PCCommData[channelId].ChannelSetData,
 							frame->Data,
 							frame->DataSize);
-						
-						// Zapis ustawieñ
 						PSDataService_SaveSettings();												
 					}
 				
 					break;
 			
-				// --->Ramka testowa watchdog'a
+				// --->Watchdog test frame
 				case PSC_WDT:
 					break;
 			
-				// --->OdpowiedŸ na ramkê watchdog'a
+				// --->Watchdog frame response
 				case PSC_WDA:
 					break;
 				
-				// --->Nieznana ramka
+				// --->Uknown frame
 				default:
 					break;
 			}
@@ -321,16 +315,10 @@ void PSDataService_AnalyzeFrame(CommProtocolFrame_t* frame)
 }
 
 /*----------------------------------------------------------------------------*/
-/**
-* @brief    Inicjalizacja kontrolera obs³ugi danych zasilacza
-* @param    Brak
-* @retval   Brak
-*/
 void PSDataService_Init()
 {
-	uint8_t index;					// Indeks pomocniczy
+	uint8_t index;
 	
-	// Inicjalizacja
 	Controller = HENBUSCtrl_Init(&WatchdogTestFrame, 
 	                             &WatchdogAnswerFrame,
 								 SerialPortController.PrintfPort,
@@ -343,16 +331,9 @@ void PSDataService_Init()
 }
 
 /*----------------------------------------------------------------------------*/
-/**
-* @brief    Funkcja obs³ugi komunikacji z PC
-* @param    Brak
-* @retval   Brak
-*/
 void PSDataService_Handler()
 {
-	// Timer zadania wysy³ania danych pomiarowych
 	static uint16_t timer = DATA_SEND_TIME;	
-	// Indeks pomocniczy
 	uint8_t index;
 	
 	if (Controller.Handler)
@@ -363,10 +344,9 @@ void PSDataService_Handler()
 		{
 			timer = DATA_SEND_TIME;
 			
-			// Wysy³anie danych pomiarowych z poszczególnych kana³ów
+			// Channel data sending
 			for (index = 0; index < PS_MODULES_COUNT; index++)
 			{
-				// Pobieranie danych
 				PCCommData[index].ChannelMeasuredData.Current =
 					PSMData[index].Get.Data.Current;
 				PCCommData[index].ChannelMeasuredData.Voltage =
@@ -384,13 +364,12 @@ void PSDataService_Handler()
 				PCCommData[index].ChannelSetData.SoftStartTime =
 					PSMData[index].Set.Data.SoftStartTime;
 				
-				// Czy modu³ jest pod³¹czony?
+				// Is module connected?
 				if (PSMData[index].ConnReg.IsConnected)
 				{
-					// Inicjalizacja ramki					
 					FrameToSend.Address = PSDS_MB_ADDRESS + 1 + index;	
 					
-					// Czy wysy³aæ dane pomiarowe?
+					// Measured data
 					if (IsDataSendEnabled[index])
 					{						
 						FrameToSend.CommandID = PSC_SSD;
@@ -402,7 +381,7 @@ void PSDataService_Handler()
 						Controller.SendFrame(&FrameToSend);
 					}
 					
-					// Czy wysy³aæ dane oscyloskopu?
+					// Oscilloscope data
 					if (IsLoggerSendEnabled[index])
 					{
 						FrameToSend.CommandID = PSC_SLD;
@@ -422,14 +401,9 @@ void PSDataService_Handler()
 }
 
 /*----------------------------------------------------------------------------*/
-/**
-* @brief    Funkcja zwracaj¹ca stan po³¹czenia z PC
-* @param    Brak
-* @retval   Status po³¹czenie (true - po³¹czony)
-*/
 bool PSDataService_GetIsConnected()
 {
 	return IsConnected;
 }
 
-/******************* (C) COPYRIGHT 2013 HENIUS *************** KONIEC PLIKU ***/
+/******************* (C) COPYRIGHT 2013 HENIUS *************** END OF FILE ****/

@@ -4,26 +4,27 @@
  * @author   LCD Workshop
  * @version  1.1.1
  * @date     08-12-2013
- * @brief    Plik obrazu 'PCConnection' (rozmiar w bajtach: 1029)
+ * @brief    'PCConnection' image definition (size in bytes: 1029)
  *******************************************************************************
  *
  * <h2><center>COPYRIGHT 2013 HENIUS</center></h2>
  */
 
-/* Sekcja include ------------------------------------------------------------*/
+/* Include section -----------------------------------------------------------*/
 
-// --->Pliki systemowe
+// --->System files
+
 #include <stdint.h>
 #include <avr/pgmspace.h>
 
-/* Sekcja zmiennych ----------------------------------------------------------*/
+/* Variable section ----------------------------------------------------------*/
 
-/*! Tabela danych obrazu */
+/*! Table of image data */
 const uint8_t PROGMEM PCConnectionImage[] =
 {
-    0x01,                           /*!< Paleta kolorów w bitach */
-    0x80, 0x00,                     /*!< Szerokość: 128 */
-    0x40, 0x00,                     /*!< Wysokość:  64 */
+    0x01,                                   /*!< Color pallet in bits */
+    0x80, 0x00,                             /*!< Width: 128 */
+    0x40, 0x00,                             /*!< Height:  64 */
     0x80, 0xE0, 0x38, 0x0C, 0x04, 0x06, 0x02, 0x03, 0x01, 0x01, 0x01, 0x01,
     0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
     0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
@@ -112,4 +113,4 @@ const uint8_t PROGMEM PCConnectionImage[] =
     0x30, 0x1C, 0x07, 0x01
 };
 
-/******************* (C) COPYRIGHT 2013 HENIUS *************** KONIEC PLIKU ***/
+/******************* (C) COPYRIGHT 2013 HENIUS *************** END OF FILE ****/

@@ -4,32 +4,31 @@
 * @author   HENIUS (Paweł Witak)
 * @version  1.1.2
 * @date     15/11/2013
-* @brief    Program obsługi płyty głównej zasilacza MBPS
+* @brief    Program of supporting Main Board of power supply MBPS
 * @mainpage
-*           \section Intro Opis projektu
-*           To jest projekt obsługi płyty głównej, który jest częścią
-*           projektu zasilacza sterowanego mikrokontrolerem MBPS224.
+*           \section Intro Project description
+*           This is program of supportingT Main Board, which is part of project 
+*           MBPS224.
 *
-*           Urządzenie składa się z dwóch głównych elementów:
-*           - płyty głównej,
-*           - modułu zasilacza.
+*           Device consists of two main parts:
+*           - Main Board,
+*           - Power Supply Module.
 *
-*           Zadaniem głównej jest:
-*           - komunikacja z modułami zasilacza za pomocą izolowanej magistrali
-*             I2C,
-*           - wizualiazacja pomiarów,
-*           - wystawianiem nastaw dla modułów,
-*           - komunikacja z komputerem PC.
-*           \section DI Lista urządzeń
-*           Niniejszy projekt został napisany dla mikrokontrolera ATmega32.
+*           The responsibilities of Main Board are:
+*           - communication with power supply module over isolated I2C bus,
+*           - measurements visualization,
+*           - setting parameters of power supply modules,
+*           - communication with PC.
+*           \section DI Devices list
+*    		This project was developed for ATmega128.
 ********************************************************************************
 *
 * <h2><center>COPYRIGHT 2010  HENIUS</center></h2>
 */
 
-/* Sekcja include ------------------------------------------------------------*/
+/* Include section -----------------------------------------------------------*/
 
-// --->Pliki systemowe
+// --->System files
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -43,7 +42,7 @@
 #include <avr/wdt.h>
 #include <util/delay_basic.h>
 
-// --->Pliki użytkownika
+// --->User files
 
 #include "main.h"
 #include "Menu.h"
@@ -58,51 +57,49 @@
 #include "Settings.h"
 #include "Peripherals.h"
 
-/* Sekcja zmiennych ----------------------------------------------------------*/
+/* Variable section ----------------------------------------------------------*/
 
-/*! Prescaler dla celów realizacji funkcji opóźniającej */
+/*! Prescaler for delay function */
 uint16_t DelTimerPresc = SET_DEL_TIME();
-/*! Zmienna na potrzeby realizacji funkcji opóźniającej */
-volatile int16_t DelayCounter = 0;	
+volatile int16_t DelayCounter = 0;			/*! Variable for delay function */
 
-/* Sekcja funkcji ------------------------------------------------------------*/
+/* Function section ----------------------------------------------------------*/
 
 /*----------------------------------------------------------------------------*/
 /**
-* @brief    Główna funkcja programu
-* @param    Brak
-* @retval   Brak
+* @brief    Main function
+* @param    None
+* @retval   None
 */
 int main(void)
 {	
-	// --->Inicjalizacja systemu
+	// --->System initialization
 	
-	InitHardware();					// Inicjalizacja głównych podzespołów
-	KS0108LCD_Init();				// Inicjalizacja wyświetlacza
-	// Inicjalizacja modułu graficznego
+	InitHardware();
+	KS0108LCD_Init();
 	InitGraphLib(KS0108LCD_SetPixel);	
-	LoadSettings();					// Ładowanie ustawień
-	sei();							// Aktywacja przerwań
+	LoadSettings();	
+	sei();
 	
-	// Aktywacja trybu DEBUG
+	// DEBUG mode is enabled by DIPSWITCH1
 	if (GET_DIPSW(DIPSW1))			
 	{
 		SetDebugMode(true);
 	}
 	
-	// Pokazanie ekranu początkowego
+	// SPlash screen is enabled by DIPSWITCH2
 	if (GET_DIPSW(DIPSW2))			
 	{
 		ShowSplashScreen();
 	}
 	
-	InitPeripherals();				// Inicjalizacja peryferiów
+	InitPeripherals();
 	
 	
-	// Aktywacja trybu zaawansowanego
+	// Advanced by pressing Left and Right key
 	IsAdvancedMode = IsKeyPressed('L') && IsKeyPressed('R') ? true : false;
 		
-	// Główna pętla programu
+	// Main loop
 	while (1)						
 	{ 
 		MenuHandler();
@@ -113,9 +110,9 @@ int main(void)
 
 /*----------------------------------------------------------------------------*/
 /**
-* @brief    Obsługa przerwania timera opóźnienia
-* @param    Brak
-* @retval   Brak
+* @brief    Timer interrupt handler for delay function reason
+* @param    None
+* @retval   None
 */
 ISR(TIMER0_OVF_vect)
 {
@@ -123,37 +120,32 @@ ISR(TIMER0_OVF_vect)
 	{
 		DelTimerPresc = SET_DEL_TIME();
 
-		TemperatureTask();				// Zadanie obsługi temperatury		
-		SystemPowerHandler();			// Obsługa podtrzymania zasilania
+		TemperatureTask();	
+		SystemPowerHandler();
 		DelayCounter--;
 	}
 }
 
 /*----------------------------------------------------------------------------*/
 /**
-* @brief    Obsługa przerwania timera systemowego (1 ms)
-* @param    Brak
-* @retval   Brak
+* @brief    Timer interrupt handler for system timer (1 ms)
+* @param    None
+* @retval   None
 */
 ISR(TIMER2_COMP_vect)
 {	
 	sei();
-	MainSystemTask();				// Główne zadanie systemowe
-	KeyboardTask();					// Obsługa klawiatury
-	SoundTask();					// Obsługa dźwięku	
-	MenuKeysTask();					// Obsługa przycisków menu 
-	PSMCtrlTask();					// Komunikacja z modułami zasilacza
-	PSMLcdTask();					// Obsługa wyświetlacza
-	ThermalControlTask();			// Kontrola temperatury
-	PCCommunicationTask();			// Komunikacja z PC
+	MainSystemTask();
+	KeyboardTask();
+	SoundTask();
+	MenuKeysTask();
+	PSMCtrlTask();
+	PSMLcdTask();
+	ThermalControlTask();
+	PCCommunicationTask();
 }
 
 /*----------------------------------------------------------------------------*/
-/**
-* @brief    Funkcja opóźniająca
-* @param  	delay : opóźnienie w ms
-* @retval   Brak
-*/
 void Wait_ms(uint16_t delay)
 {
 	DelayCounter = delay;
@@ -161,4 +153,4 @@ void Wait_ms(uint16_t delay)
 	while (DelayCounter > 0);
 }
 
-/******************* (C) COPYRIGHT 2010 HENIUS *************** KONIEC PLIKU ***/
+/******************* (C) COPYRIGHT 2010 HENIUS *************** END OF FILE ****/
