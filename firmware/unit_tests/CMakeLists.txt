@@ -41,14 +41,18 @@ endif()
 ################################
 include_directories(
 	${COMMON_DIR}/include
-	${COMMON_DIR}/source)
+	${COMMON_DIR}/include/gtest
+	${COMMON_DIR}/source/utils	
+	${COMMON_DIR}/include/utils)
 get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
 foreach(dir ${dirs})
   message(STATUS "Include dir='${dir}'")
-endforeach()	
+endforeach()
 	
-file (GLOB TEST_SRC_FILES
+file (GLOB_RECURSE TEST_SRC_FILES REC
 	  # Test file
-      ${PROJECT_SOURCE_DIR}/tests/common/*.cpp)
-add_executable(${PROJECT_NAME} main.cpp ${TEST_SRC_FILES})
+      ${PROJECT_SOURCE_DIR}/tests/*.cpp)
+add_executable(${PROJECT_NAME}
+               main.cpp
+               ${TEST_SRC_FILES})
 target_link_libraries(${PROJECT_NAME} PUBLIC gtest gtest_main)
