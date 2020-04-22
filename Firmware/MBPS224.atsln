@@ -2,9 +2,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Atmel Studio Solution File, Format Version 11.00
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "PowerSupplyModule", "PowerSupplyModule\PowerSupplyModule.cproj", "{4C3F1556-3900-45DD-9D18-E1DD933F1160}"
+Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "PowerSupplyModule", "power_supply_module\PowerSupplyModule.cproj", "{4C3F1556-3900-45DD-9D18-E1DD933F1160}"
 EndProject
-Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "MainBoard", "MainBoard\MainBoard.cproj", "{1F739DB3-036F-4E56-B0D5-D964CDFBA936}"
+Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "MainBoard", "main_board\MainBoard.cproj", "{1F739DB3-036F-4E56-B0D5-D964CDFBA936}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
