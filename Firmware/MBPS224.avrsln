@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# AvrStudio Solution File, Format Version 11.00
+Project("{D1100916-62DA-4D80-A9B4-55A1E7CCEEB3}") = "PowerSupplyModule", "PowerSupplyModule\PowerSupplyModule.avrgccproj", "{4C3F1556-3900-45DD-9D18-E1DD933F1160}"
+EndProject
+Project("{D1100916-62DA-4D80-A9B4-55A1E7CCEEB3}") = "MainBoard", "MainBoard\MainBoard.avrgccproj", "{1F739DB3-036F-4E56-B0D5-D964CDFBA936}"
+EndProject
+Global
+	GlobalSection(SubversionScc) = preSolution
+		Svn-Managed = True
+		Manager = AnkhSVN - Subversion Support for Visual Studio
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|AVR = Debug|AVR
+		Release|AVR = Release|AVR
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4C3F1556-3900-45DD-9D18-E1DD933F1160}.Debug|AVR.ActiveCfg = Debug|AVR
+		{4C3F1556-3900-45DD-9D18-E1DD933F1160}.Debug|AVR.Build.0 = Debug|AVR
+		{4C3F1556-3900-45DD-9D18-E1DD933F1160}.Release|AVR.ActiveCfg = Release|AVR
+		{4C3F1556-3900-45DD-9D18-E1DD933F1160}.Release|AVR.Build.0 = Release|AVR
+		{1F739DB3-036F-4E56-B0D5-D964CDFBA936}.Debug|AVR.ActiveCfg = Debug|AVR
+		{1F739DB3-036F-4E56-B0D5-D964CDFBA936}.Debug|AVR.Build.0 = Debug|AVR
+		{1F739DB3-036F-4E56-B0D5-D964CDFBA936}.Release|AVR.ActiveCfg = Release|AVR
+		{1F739DB3-036F-4E56-B0D5-D964CDFBA936}.Release|AVR.Build.0 = Release|AVR
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

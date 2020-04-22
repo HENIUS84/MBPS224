@@ -1,0 +1,253 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectVersion>7.0</ProjectVersion>
+    <ProjectGuid>{4c3f1556-3900-45dd-9d18-e1dd933f1160}</ProjectGuid>
+    <avrdevice>ATmega32</avrdevice>
+    <avrdeviceseries>none</avrdeviceseries>
+    <OutputType>Executable</OutputType>
+    <Language>C</Language>
+    <OutputDirectory>$(MSBuildProjectDirectory)\$(Configuration)</OutputDirectory>
+    <AvrGccProjectExtensions>
+    </AvrGccProjectExtensions>
+    <AssemblyName>MBPS225_PowerSupplyModule</AssemblyName>
+    <Name>PowerSupplyModule</Name>
+    <RootNamespace>MBPS225_PowerSupplyModule</RootNamespace>
+    <SccProjectName>
+    </SccProjectName>
+    <SccProvider>
+    </SccProvider>
+    <SccAuxPath>
+    </SccAuxPath>
+    <SccLocalPath>
+    </SccLocalPath>
+    <avrtool>com.atmel.avrdbg.tool.simulator</avrtool>
+    <com_atmel_avrdbg_tool_simulator>
+      <ToolType>com.atmel.avrdbg.tool.simulator</ToolType>
+      <ToolName>Simulator</ToolName>
+      <ToolNumber>
+      </ToolNumber>
+      <Channel>
+        <host>127.0.0.1</host>
+        <port>51385</port>
+        <ssl>False</ssl>
+      </Channel>
+    </com_atmel_avrdbg_tool_simulator>
+    <avrtoolinterface />
+    <ToolchainName>com.Atmel.AVRGCC8.C</ToolchainName>
+    <ToolchainFlavour>Native</ToolchainFlavour>
+    <AsfVersion>2.11.1</AsfVersion>
+    <KeepTimersRunning>true</KeepTimersRunning>
+    <OverrideVtor>false</OverrideVtor>
+    <OverrideVtorValue>exception_table</OverrideVtorValue>
+    <eraseonlaunchrule>0</eraseonlaunchrule>
+    <AsfFrameworkConfig>
+      <framework-data>
+        <options />
+        <configurations />
+        <files />
+        <documentation help="" />
+        <offline-documentation help="" />
+        <dependencies>
+          <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.39.0" />
+        </dependencies>
+      </framework-data>
+    </AsfFrameworkConfig>
+    <CacheFlash>true</CacheFlash>
+    <ProgFlashFromRam>true</ProgFlashFromRam>
+    <RamSnippetAddress>0x20000000</RamSnippetAddress>
+    <UncachedRange />
+    <BootSegment>0</BootSegment>
+    <preserveEEPROM>true</preserveEEPROM>
+    <ResetRule>0</ResetRule>
+    <EraseKey />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <OutputFileName>PowerSupplyModule</OutputFileName>
+    <OutputFileExtension>.elf</OutputFileExtension>
+    <ToolchainSettings>
+      <AvrGcc>
+        <avrgcc.common.Device>-mmcu=atmega32 -B "%24(PackRepoDir)\atmel\ATmega_DFP\1.0.98\gcc\dev\atmega32"</avrgcc.common.Device>
+        <avrgcc.common.outputfiles.hex>True</avrgcc.common.outputfiles.hex>
+        <avrgcc.common.outputfiles.lss>True</avrgcc.common.outputfiles.lss>
+        <avrgcc.common.outputfiles.eep>True</avrgcc.common.outputfiles.eep>
+        <avrgcc.common.outputfiles.srec>True</avrgcc.common.outputfiles.srec>
+        <avrgcc.common.outputfiles.usersignatures>False</avrgcc.common.outputfiles.usersignatures>
+        <avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>True</avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>
+        <avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>True</avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>
+        <avrgcc.compiler.symbols.DefSymbols>
+          <ListValues>
+            <Value>F_CPU=8000000</Value>
+            <Value>SYS_TIME=1</Value>
+          </ListValues>
+        </avrgcc.compiler.symbols.DefSymbols>
+        <avrgcc.compiler.optimization.level>Optimize for size (-Os)</avrgcc.compiler.optimization.level>
+        <avrgcc.compiler.optimization.PackStructureMembers>True</avrgcc.compiler.optimization.PackStructureMembers>
+        <avrgcc.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcc.compiler.optimization.AllocateBytesNeededForEnum>
+        <avrgcc.compiler.warnings.AllWarnings>True</avrgcc.compiler.warnings.AllWarnings>
+        <avrgcc.linker.libraries.Libraries>
+          <ListValues>
+            <Value>libm</Value>
+          </ListValues>
+        </avrgcc.linker.libraries.Libraries>
+        <avrgcc.assembler.general.IncludePaths>
+          <ListValues>
+            <Value>%24(PackRepoDir)\atmel\ATmega_DFP\1.0.98\include</Value>
+          </ListValues>
+        </avrgcc.assembler.general.IncludePaths>
+      </AvrGcc>
+    </ToolchainSettings>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <PostBuildEvent>
+    </PostBuildEvent>
+    <OutputFileName>PowerSupplyModule</OutputFileName>
+    <OutputFileExtension>.elf</OutputFileExtension>
+    <ToolchainSettings>
+      <AvrGcc>
+  <avrgcc.common.Device>-mmcu=atmega32 -B "%24(PackRepoDir)\atmel\ATmega_DFP\1.0.98\gcc\dev\atmega32"</avrgcc.common.Device>
+  <avrgcc.common.outputfiles.hex>True</avrgcc.common.outputfiles.hex>
+  <avrgcc.common.outputfiles.lss>True</avrgcc.common.outputfiles.lss>
+  <avrgcc.common.outputfiles.eep>True</avrgcc.common.outputfiles.eep>
+  <avrgcc.common.outputfiles.srec>True</avrgcc.common.outputfiles.srec>
+  <avrgcc.common.outputfiles.usersignatures>False</avrgcc.common.outputfiles.usersignatures>
+  <avrgcc.compiler.general.SubroutinesFunctionPrologues>True</avrgcc.compiler.general.SubroutinesFunctionPrologues>
+  <avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>True</avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>
+  <avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>True</avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>
+  <avrgcc.compiler.symbols.DefSymbols>
+    <ListValues>
+      <Value>F_CPU=8000000</Value>
+      <Value>SYS_TIME=1</Value>
+      <Value>FIRMWARE_VERSION=\"1.1.4\"</Value>
+    </ListValues>
+  </avrgcc.compiler.symbols.DefSymbols>
+  <avrgcc.compiler.directories.IncludePaths>
+    <ListValues>
+      <Value>../include</Value>
+      <Value>../high_level/include</Value>
+      <Value>../high_level/include</Value>
+      <Value>../../common/include</Value>
+      <Value>%24(PackRepoDir)\atmel\ATmega_DFP\1.0.98\include</Value>
+      <Value>../hardware/include</Value>
+	  <Value>../../common/include</Value>
+	  <Value>../../common/include/communication</Value>
+      <Value>../../common/include/avr</Value>
+	  <Value>../../common/include/avr/drivers</Value>
+	  <Value>../../common/include/graphic</Value>
+	  <Value>../../common/include/hardware</Value>
+	  <Value>../../common/include/utils</Value>
+	  <Value>../../common/include/utils/crc</Value>
+    </ListValues>
+  </avrgcc.compiler.directories.IncludePaths>
+  <avrgcc.compiler.optimization.level>Optimize most (-O3)</avrgcc.compiler.optimization.level>
+  <avrgcc.compiler.optimization.PackStructureMembers>True</avrgcc.compiler.optimization.PackStructureMembers>
+  <avrgcc.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcc.compiler.optimization.AllocateBytesNeededForEnum>
+  <avrgcc.compiler.optimization.DebugLevel>Default (-g2)</avrgcc.compiler.optimization.DebugLevel>
+  <avrgcc.compiler.warnings.AllWarnings>True</avrgcc.compiler.warnings.AllWarnings>
+  <avrgcc.compiler.warnings.Undefined>True</avrgcc.compiler.warnings.Undefined>
+  <avrgcc.linker.memorysettings.InitialStack>0x800</avrgcc.linker.memorysettings.InitialStack>
+  <avrgcc.assembler.general.IncludePaths>
+    <ListValues>
+      <Value>%24(PackRepoDir)\atmel\ATmega_DFP\1.0.98\include</Value>
+    </ListValues>
+  </avrgcc.assembler.general.IncludePaths>
+  <avrgcc.assembler.debugging.DebugLevel>Default (-Wa,-g)</avrgcc.assembler.debugging.DebugLevel>
+</AvrGcc>
+    </ToolchainSettings>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\common\source\avr\drivers\ADC.c">
+      <SubType>compile</SubType>
+      <Link>hardware\source\ADC.c</Link>
+    </Compile>
+    <Compile Include="..\common\source\utils\AverageFilters.c">
+      <SubType>compile</SubType>
+      <Link>high_level\source\AverageFilters.c</Link>
+    </Compile>
+    <Compile Include="..\common\source\utils\Debug.c">
+      <SubType>compile</SubType>
+      <Link>high_level\source\Debug.c</Link>
+    </Compile>
+    <Compile Include="..\common\source\avr\drivers\I2CSlave.c">
+      <SubType>compile</SubType>
+      <Link>hardware\source\I2CSlave.c</Link>
+    </Compile>
+    <Compile Include="..\common\source\utils\crc\OWICrc.c">
+      <SubType>compile</SubType>
+      <Link>high_level\source\OWICrc.c</Link>
+    </Compile>
+    <Compile Include="..\common\source\avr\drivers\OWIMaster.c">
+      <SubType>compile</SubType>
+      <Link>hardware\source\OWIMaster.c</Link>
+    </Compile>
+    <Compile Include="..\common\source\avr\drivers\OWIThermometer.c">
+      <SubType>compile</SubType>
+      <Link>hardware\source\OWIThermometer.c</Link>
+    </Compile>
+    <Compile Include="..\common\source\avr\drivers\SerialPort.c">
+      <SubType>compile</SubType>
+      <Link>hardware\source\SerialPort.c</Link>
+    </Compile>
+    <Compile Include="..\common\source\utils\Utils.c">
+      <SubType>compile</SubType>
+      <Link>high_level\source\Utils.c</Link>
+    </Compile>
+    <Compile Include="...\common\source\utils\Version.c">
+      <SubType>compile</SubType>
+      <Link>high_level\source\Version.c</Link>
+    </Compile>
+    <Compile Include="hardware\include\Hardware.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hardware\include\Regulator.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hardware\source\Hardware.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hardware\source\Regulator.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="high_level\include\MBController.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="high_level\include\Peripherals.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="high_level\include\Multimeter.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="high_level\include\Tasks.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="high_level\source\MBController.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="high_level\source\Peripherals.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="high_level\source\Multimeter.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="high_level\source\Tasks.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="include\main.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="main.c">
+      <SubType>compile</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="hardware\include" />
+    <Folder Include="hardware\source" />
+    <Folder Include="high_level\include" />
+    <Folder Include="high_level\source" />
+    <Folder Include="include" />
+    <Folder Include="high_level" />
+    <Folder Include="hardware" />
+  </ItemGroup>
+  <Import Project="$(AVRSTUDIO_EXE_PATH)\\Vs\\AvrGCC.targets" />
+</Project>
