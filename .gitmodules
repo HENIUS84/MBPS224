@@ -1,4 +1,3 @@
-
 [submodule "firmware/common"]
 	path = firmware/common
 	url = https://github.com/HENIUS84/CLibByHENIUS.git
