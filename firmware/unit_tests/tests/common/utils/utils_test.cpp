@@ -29,9 +29,10 @@ using namespace std;
 // --->Test classes
 
 /*! Test class for testing AsciiHexToByte function */
-class TEST_CLASS_WITH_PARAM(AsciiHexToByteTest, string)
-{
-};
+class TEST_CLASS_WITH_PARAM(AsciiHexToByteTest, string) { };
+
+/*! Test class for testing ByteToAsciiHex function */
+class TEST_CLASS_WITH_PARAM(ByteToAsciiHex, uint8_t) { };
 
 /* Function section ----------------------------------------------------------*/
 
@@ -47,11 +48,29 @@ UNIT_TEST_WITH_PARAM(AsciiHexToByteTest, "00", "11", "AA", "BB", "FF")
 	int expectedByte;
 	stringstream hexStream;
 
-	hexStream << std::hex << asciiHexStr;
+	hexStream << hex << asciiHexStr;
 	hexStream >> expectedByte;
 
 	EXPECT_EQ(AsciiHexToByte((uint8_t *)asciiHexStr.c_str()), expectedByte);
 }
 
+/*----------------------------------------------------------------------------*/
+/**
+ * Test of function ByteToAsciiHex
+ */
+UNIT_TEST_WITH_PARAM(ByteToAsciiHex, 0x00, 0x22, 0xAA, 0xFF)
+{
+	int testedValue = GetParam();
+	stringstream  hexStream;
+	uint8_t resultAsciiHex[100];
+
+	hexStream << hex << setfill('0') << setw(2) << uppercase << testedValue;
+	string expectedAsciiHex = hexStream.str();
+
+	ByteToAsciiHex(resultAsciiHex, GetParam());
+
+	EXPECT_STREQ(reinterpret_cast<char *>(resultAsciiHex),
+			     expectedAsciiHex.c_str());
+}
 
 /******************* (C) COPYRIGHT 2020 HENIUS *************** END OF FILE ****/

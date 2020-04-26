@@ -1,14 +1,23 @@
-cmake_minimum_required(VERSION 3.11)
 set(PROJECT_NAME "UnitTests")
 project(${PROJECT_NAME})
 enable_testing()
+find_package(PythonInterp)
 set(PYTHON_EXECUTABLE ${PYTHON3})
+include(utils/cmake/Utils.cmake)
+
+################################
+# Paths
+################################
 
 # Firmware directory resolving
 get_filename_component(FIRMWARE_DIR ${PROJECT_SOURCE_DIR} DIRECTORY)
 
 # Common directory resolving
-set (COMMON_DIR "${FIRMWARE_DIR}/Common")
+set (COMMON_DIR "${FIRMWARE_DIR}/common")
+
+################################
+# Compiler settings
+################################
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
      -g \
@@ -16,11 +25,13 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
     -DGTEST_USE_OWN_TR1_TUPLE=1 \
     -DGTEST_HAS_TR1_TUPLE=1 \
     -std=gnu++14 \
-    -Wno-narrowing")
+    -Wno-narrowing \
+    -coverage -fprofile-arcs -ftest-coverage")
 
 ################################
 # GTest
 ################################
+
 include(FetchContent)
 set(FETCHCONTENT_QUIET off)
 FetchContent_Declare(
@@ -40,10 +51,11 @@ endif()
 # Tests
 ################################
 include_directories(
+    mocks
 	${COMMON_DIR}/include
 	${COMMON_DIR}/include/gtest
-	${COMMON_DIR}/source/utils	
-	${COMMON_DIR}/include/utils)
+	${COMMON_DIR}/source/utils ${COMMON_DIR}/include/utils	
+	${COMMON_DIR}/source/avr/drivers ${COMMON_DIR}/include/avr/drivers)
 get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
 foreach(dir ${dirs})
   message(STATUS "Include dir='${dir}'")
@@ -52,7 +64,14 @@ endforeach()
 file (GLOB_RECURSE TEST_SRC_FILES REC
 	  # Test file
       ${PROJECT_SOURCE_DIR}/tests/*.cpp)
+set(EXECUTABLE_OUTPUT_PATH "bin")
 add_executable(${PROJECT_NAME}
                main.cpp
                ${TEST_SRC_FILES})
 target_link_libraries(${PROJECT_NAME} PUBLIC gtest gtest_main)
+
+################################
+# gcovr
+################################
+
+find_gcovr()
