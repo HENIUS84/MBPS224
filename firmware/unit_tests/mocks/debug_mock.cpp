@@ -1,34 +1,41 @@
 /**
  *******************************************************************************
- * @file     main.cpp
+ * @file     debug_mock.h.h
  * @author   HENIUS (Pawe³ Witak)
  * @version  1.0.0
- * @date     22-04-2020
- * @brief    Main program
+ * @date     01.05.2020
+ * @brief    Mock of file debug.h (header file)
  *******************************************************************************
  *
- * <h2><center>COPYRIGHT 2020 HENIUS</center></h2>
+ * <h2><center>COPYRIGHT 2014 HENIUS</center></h2>
  */
 
 /* Include section -----------------------------------------------------------*/
 
 // --->System files
 
-#include <gmock/gmock.h>
+#include <stdio.h>
+
+// --->User files
+
+#include "debug_mock.h"
 
 /* Function section ----------------------------------------------------------*/
 
 /*----------------------------------------------------------------------------*/
-/**
-* @brief    Main function
-* @param    None
-* @retval   Exit code
-*/
-int main(int argc, char **argv)
+/*! Mock of function DebugWrite */
+void DebugWrite(char *format, ...)
 {
-    ::testing::InitGoogleMock(&argc, argv);
+    va_list args;
 
-    return RUN_ALL_TESTS();
+    va_start(args, format);
+
+    char message[100];
+    
+    vsprintf(message, format, args);
+    debug_h_Mock::getInstance().DebugWrite(message);
+
+    va_end(args);
 }
 
 /******************* (C) COPYRIGHT 2020 HENIUS *************** END OF FILE ****/

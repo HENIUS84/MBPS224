@@ -98,7 +98,7 @@ void InitHardware(void)
 }
 
 /*----------------------------------------------------------------------------*/
-void SystemPowerHandler()
+void SystemPowerHandler(void)
 {
 	// Timer obsługi zasilania
 	static uint16_t powerBtnTimer = 1;
@@ -112,7 +112,7 @@ void SystemPowerHandler()
 }
 
 /*----------------------------------------------------------------------------*/
-void StatLedHandler()
+void StatLedHandler(void)
 {
 	// LED timer (turning on)
 	static uint16_t ledOnTimer = 1;

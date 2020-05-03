@@ -20,7 +20,7 @@
 // --->User files
 
 #include "Hardware.h"
-#include "I2CMaster.h"
+#include "i2c_master.h"
 #include "SerialPort.h"
 #include "PSMController.h"
 #include "Debug.h"
@@ -141,7 +141,7 @@ void ThermalControlTask(void)
 }
 
 /*----------------------------------------------------------------------------*/
-void PCCommunicationTask()
+void PCCommunicationTask(void)
 {
 	static uint16_t timer = PC_COMM_TASK_TIME;
 	

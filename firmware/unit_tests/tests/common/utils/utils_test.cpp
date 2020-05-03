@@ -32,7 +32,7 @@ using namespace std;
 class TEST_CLASS_WITH_PARAM(AsciiHexToByteTest, string) { };
 
 /*! Test class for testing ByteToAsciiHex function */
-class TEST_CLASS_WITH_PARAM(ByteToAsciiHex, uint8_t) { };
+class TEST_CLASS_WITH_PARAM(ByteToAsciiHexTest, uint8_t) { };
 
 /* Function section ----------------------------------------------------------*/
 
@@ -58,7 +58,7 @@ UNIT_TEST_WITH_PARAM(AsciiHexToByteTest, "00", "11", "AA", "BB", "FF")
 /**
  * Test of function ByteToAsciiHex
  */
-UNIT_TEST_WITH_PARAM(ByteToAsciiHex, 0x00, 0x22, 0xAA, 0xFF)
+UNIT_TEST_WITH_PARAM(ByteToAsciiHexTest, 0x00, 0x22, 0xAA, 0xFF)
 {
 	int testedValue = GetParam();
 	stringstream  hexStream;

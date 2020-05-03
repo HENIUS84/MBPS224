@@ -191,7 +191,7 @@ void InitHardware(void);
  * @param    None
  * @retval   None
  */
-void StatLedHandler();
+void StatLedHandler(void);
 
 /*----------------------------------------------------------------------------*/
 /**
@@ -208,7 +208,7 @@ void SetStatLedBlinking(uint16_t onTime, uint16_t offTime);
  * @param    None
  * @retval   None
  */
-void SystemPowerHandler();
+void SystemPowerHandler(void);
 
 #endif								/* HARDWARE_H */
 

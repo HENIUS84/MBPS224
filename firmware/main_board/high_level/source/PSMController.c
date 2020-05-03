@@ -25,7 +25,7 @@
 #include "PSMController.h"
 #include "OWICrc.h"
 #include "Hardware.h"
-#include "I2CMaster.h"
+#include "i2c_master.h"
 #include "Debug.h"
 #include "Peripherals.h"
 

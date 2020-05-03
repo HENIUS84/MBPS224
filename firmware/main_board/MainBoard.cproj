@@ -183,9 +183,9 @@
       <SubType>compile</SubType>
       <Link>hardware\source\HENBUSController.c</Link>
     </Compile>
-    <Compile Include="..\common\source\avr\drivers\I2CMaster.c">
+    <Compile Include="..\common\source\avr\drivers\i2c_master.c">
       <SubType>compile</SubType>
-      <Link>hardware\source\I2CMaster.c</Link>
+      <Link>hardware\source\i2c_master.c</Link>
     </Compile>
     <Compile Include="..\common\source\hardware\KeyboardLib.c">
       <SubType>compile</SubType>

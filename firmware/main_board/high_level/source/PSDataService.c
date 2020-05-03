@@ -121,7 +121,7 @@ bool IsLoggerSendEnabled[PS_MODULES_COUNT];
 * @param    None
 * @retval   None
 */
-static void PSDataService_SaveSettings()
+static void PSDataService_SaveSettings(void)
 {
 	uint8_t index;
 	
@@ -315,7 +315,7 @@ static void PSDataService_AnalyzeFrame(CommProtocolFrame_t* frame)
 }
 
 /*----------------------------------------------------------------------------*/
-void PSDataService_Init()
+void PSDataService_Init(void)
 {
 	uint8_t index;
 	
@@ -331,7 +331,7 @@ void PSDataService_Init()
 }
 
 /*----------------------------------------------------------------------------*/
-void PSDataService_Handler()
+void PSDataService_Handler(void)
 {
 	static uint16_t timer = DATA_SEND_TIME;	
 	uint8_t index;
@@ -401,7 +401,7 @@ void PSDataService_Handler()
 }
 
 /*----------------------------------------------------------------------------*/
-bool PSDataService_GetIsConnected()
+bool PSDataService_GetIsConnected(void)
 {
 	return IsConnected;
 }

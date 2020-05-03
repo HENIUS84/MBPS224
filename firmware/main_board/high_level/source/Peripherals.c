@@ -22,7 +22,7 @@
 #include "main.h"
 #include "Peripherals.h"
 #include "SoundLib.h"
-#include "I2CMaster.h"
+#include "i2c_master.h"
 #include "Settings.h"
 #include "KeyboardLib.h"
 #include "TDA8551.h"

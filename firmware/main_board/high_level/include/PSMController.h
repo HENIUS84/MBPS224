@@ -226,7 +226,7 @@ void PSMController_Init(PSMController_t *data);
  * @param    None
  * @retval   None
  */
-void PSMController_Handler();
+void PSMController_Handler(void);
 
 #endif 										/* PSM_CONTROLLER_H_ */
 

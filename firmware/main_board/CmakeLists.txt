@@ -1,0 +1,94 @@
+# I target a recent cmake, it shouldn't be a problem on a dev machine
+cmake_minimum_required(VERSION 3.16)
+
+################################
+# Paths
+################################
+
+# Utils directory resolving
+set (UTILS_DIR "${C_LIB_BY_HENIUS_DIR}/cmake")
+include(${UTILS_DIR}/Utils.cmake)
+
+################################
+# Definitions
+################################
+
+add_compile_definitions(PS_MODULES_COUNT=2)
+add_compile_definitions(SYS_TIME=2)
+add_compile_definitions(FIRMWARE_VERSION="1.1.13")
+add_compile_definitions(DEVICE_NAME="${SOLUTION_NAME}")
+
+# Product filename
+set(PROJECT_NAME "MainBoard")
+string_camel_case_to_lower_case_underscore(${PROJECT_NAME} PRODUCT_NAME)
+
+################################
+# MCU settings
+################################
+
+## AVR Chip Configuration
+set(F_CPU 14745600UL)
+
+# CPU, you can find the list here:
+# https://gcc.gnu.org/onlinedocs/gcc/AVR-Options.html
+set(MCU atmega128)
+
+# Default Baudrate for UART, read avr include/util/setbaud.h for usage
+set(BAUD 9600)
+
+# The programmer to use, read avrdude manual for list
+set(PROG_TYPE avrispmkII)
+
+# AVR Fuses, must be in concordance with your hardware and F_CPU
+# http://eleccelerator.com/fusecalc/fusecalc.php?chip=atmega328p
+set(E_FUSE 0xfd)
+set(H_FUSE 0xda)
+set(L_FUSE 0xfd)
+set(LOCK_BIT 0xff)
+
+################################
+# Files
+################################
+
+# Sources and includes
+file(GLOB_RECURSE SRC_FILES
+     "main.c"
+	 "hardware/*.c"
+	 "high_level/*.c"
+	 "resources/*.c"
+	 "${C_LIB_BY_HENIUS_DIR}/*/KeyboardLib.c"
+	 "${C_LIB_BY_HENIUS_DIR}/*/KS0108LCD.c"
+	 "${C_LIB_BY_HENIUS_DIR}/*/i2c_master.c"
+	 "${C_LIB_BY_HENIUS_DIR}/*/Audio.c"
+	 "${C_LIB_BY_HENIUS_DIR}/*/OWIMaster.c"
+	 "${C_LIB_BY_HENIUS_DIR}/*/OWIThermometer.c"
+	 "${C_LIB_BY_HENIUS_DIR}/*/SerialPort.c"
+	 "${C_LIB_BY_HENIUS_DIR}/*/SoundLib.c"
+	 "${C_LIB_BY_HENIUS_DIR}/*/TDA8551.c"
+	 "${C_LIB_BY_HENIUS_DIR}/*/GraphLib.c"
+	 "${C_LIB_BY_HENIUS_DIR}/*/SettingsController.c"
+	 "${C_LIB_BY_HENIUS_DIR}/*/HENBUSController.c"
+	 "${C_LIB_BY_HENIUS_DIR}/*/Version.c"
+	 "${C_LIB_BY_HENIUS_DIR}/*/Debug.c"
+	 "${C_LIB_BY_HENIUS_DIR}/*/Utils.c"
+	 "${C_LIB_BY_HENIUS_DIR}/*/OWICrc.c")
+
+include_directories(include
+                    hardware/include
+					high_level/include
+					resources/fonts/include
+					resources/rings/include
+					resources/bitmaps/include
+					${C_LIB_BY_HENIUS_DIR}/include/utils
+					${C_LIB_BY_HENIUS_DIR}/include/utils/crc			
+					${C_LIB_BY_HENIUS_DIR}/include/graphic		
+					${C_LIB_BY_HENIUS_DIR}/include/hardware	
+					${C_LIB_BY_HENIUS_DIR}/include/communication
+					${C_LIB_BY_HENIUS_DIR}/include/avr
+					${C_LIB_BY_HENIUS_DIR}/include/avr/drivers)
+	 
+include (${UTILS_DIR}/toolchains/avr-toolchain.cmake)
+
+# Project name
+project(${PRODUCT_NAME})
+set(CMAKE_EXE_LINKER_FLAGS -mmcu=${MCU})

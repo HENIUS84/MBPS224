@@ -125,7 +125,7 @@ void ThermalControlTask(void);
  * @param    None
  * @retval   None
  */
-void PCCommunicationTask();
+void PCCommunicationTask(void);
 
 #endif								/* TASKS_H */
 

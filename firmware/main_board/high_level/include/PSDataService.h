@@ -107,7 +107,7 @@ typedef struct
 * @param    None
 * @retval   None
 */
-void PSDataService_Init();
+void PSDataService_Init(void);
 
 /*----------------------------------------------------------------------------*/
 /**
@@ -115,7 +115,7 @@ void PSDataService_Init();
 * @param    None
 * @retval   None
 */
-void PSDataService_Handler();
+void PSDataService_Handler(void);
 
 /*----------------------------------------------------------------------------*/
 /**
@@ -123,7 +123,7 @@ void PSDataService_Handler();
 * @param    None
 * @retval   Connection status (true - connected)
 */
-bool PSDataService_GetIsConnected();
+bool PSDataService_GetIsConnected(void);
 
 #endif								/* PS_DATA_SERVICE_H */
 
