@@ -1,19 +1,18 @@
-cmake_minimum_required(VERSION 3.17)
+cmake_minimum_required(VERSION 3.16)
 
 set(SOLUTION_NAME "MBPS224")
 project("${SOLUTION_NAME}")
 set(C_LIB_BY_HENIUS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/common)
-include (${C_LIB_BY_HENIUS_DIR}/cmake/Utils.cmake)
+include(${C_LIB_BY_HENIUS_DIR}/cmake/Utils.cmake)
 
 # ******************************************************************************
 # Builds the specified project
 # ******************************************************************************
-function(build_project PROJ_NAME)
-	string_camel_case_to_lower_case_underscore(${PROJ_NAME} PROJ_SUB_DIR)
+function(build_project PROJ_NAME PROJ_SUB_DIR)
 	set(PROJ_PATH ${CMAKE_CURRENT_SOURCE_DIR}/${PROJ_SUB_DIR})
-	message("****************************************")
+	message("**********************************************************")
 	message("Compiling ${PROJ_NAME} project for ${SOLUTION_NAME}")
-	message("****************************************")
+	message("**********************************************************")
 	execute_process(COMMAND ${CMAKE_COMMAND}
 					-G "Unix Makefiles"
 					-DC_LIB_BY_HENIUS_DIR=${C_LIB_BY_HENIUS_DIR}
@@ -23,8 +22,15 @@ function(build_project PROJ_NAME)
 	add_custom_target(${PROJ_NAME} ALL make -C ${PROJ_PATH})
 endfunction()
 
-# Building of MainBoard project
-build_project(MainBoard)
+################################
+# Projects list
+################################
 
-# Building of UnitTests project
-build_project(UnitTests)
+# Building of MainBoard project
+build_project(MainBoard main_board)
+
+# Building of Unit Tests for MainBoard project
+build_project(MainBoard_tests main_board/tests)
+
+# Building of Unit Tests for Common project
+build_project(CLibByHenius_tests common/tests)

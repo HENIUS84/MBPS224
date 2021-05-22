@@ -3,7 +3,7 @@
  * @file     main.cpp
  * @author   HENIUS (Pawe³ Witak)
  * @version  1.0.0
- * @date     22-04-2020
+ * @date     04-09-2020
  * @brief    Main program
  *******************************************************************************
  *
